@@ -9,13 +9,12 @@ const config = {
   ].filter(entry => !!entry),
   module: {
     loaders: [
-      { test: /\.(js(x)?$)/, exclude: /node_modules/, loader: 'react-hot!babel' },
-      { test: /\.styl$/, exclude: /node_modules/, loader: 'style!css!stylus' },
-      // { test: /\.css$/, exclude: /node_modules/, loader: 'style!css' },
+      { test: /\.(js(x)?$)/, exclude: /node_modules/, loader: 'react-hot-loader!babel-loader' },
+      { test: /\.(css|styl)$/, exclude: /node_modules/, loader: 'style-loader!css-loader!stylus-loader' },
       {
         test: /\.(gif|jpg|png|svg|eot|otf|ttf|woff(2)?)$/,
         exclude: /node_modules/,
-        loader: 'url?limit=100000&name=/[name].[ext]',
+        loader: 'url-loader?limit=100000&name=/[name].[ext]',
       },
     ],
   },
