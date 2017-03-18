@@ -1,4 +1,5 @@
 import React, { Component, PropTypes } from 'react';
+import logoUrl from '../../images/headflow.png';
 
 class Header extends Component {
   constructor(props) {
@@ -10,7 +11,7 @@ class Header extends Component {
     return (
       <div className="header">
         <div className="links-left">
-          <img className="logo" src="./favicon.png" alt="logo" />
+          <img className="logo" src={logoUrl} alt="logo" />
         </div>
         <div className="links-right">
           {

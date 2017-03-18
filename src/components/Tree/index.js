@@ -22,6 +22,7 @@ class Tree extends Component {
   constructor(props) {
     super(props);
     this.state = {};
+    this.getParentKey = this.getParentKey.bind(this);
     this.keyBindingFn = this.keyBindingFn.bind(this);
     this.handleKeyCommand = this.handleKeyCommand.bind(this);
     this.handleChange = this.handleChange.bind(this);
@@ -42,8 +43,21 @@ class Tree extends Component {
     // this.editor.focus();
   }
 
+  getParentKey(contentBlock) {
+    const currentContent = this.props.editorState.getCurrentContent();
+    const blockMap = currentContent.getBlockMap();
+    const depth = contentBlock.getDepth();
+    const key = contentBlock.getKey();
+    const parent = blockMap
+      .reverse()
+      .skipWhile(block => block.getKey() !== key)
+      .skipUntil(block => block.getDepth() === depth - 1)
+      .take(1);
+    return parent.first() ? parent.first().getKey() : '';
+  }
+
   keyBindingFn(e) {
-    // TODO Do not allow children to move out of their group
+    // Move up
     if (hasCommandModifier(e) && e.shiftKey && e.which === 38) {
       e.preventDefault();
       const currentContent = this.props.editorState.getCurrentContent();
@@ -102,6 +116,7 @@ class Tree extends Component {
       );
     }
 
+    // Move down
     if (hasCommandModifier(e) && e.shiftKey && e.which === 40) {
       e.preventDefault();
       const currentContent = this.props.editorState.getCurrentContent();
@@ -160,24 +175,30 @@ class Tree extends Component {
       );
     }
 
+    // Collapse
     if (hasCommandModifier(e) && !e.shiftKey && e.which === 38) {
       e.preventDefault();
-      // const currentContent = this.props.editorState.getCurrentContent();
-      // const blockMap = currentContent.getBlockMap();
-      // const currentBlockKey = this.props.editorState.getSelection().getAnchorKey();
-      // const currentBlock = blockMap.filter(block => block.getKey() === currentBlockKey).first();
-      // this.toggleExpand(currentBlock, 'collapse');
+      const currentContent = this.props.editorState.getCurrentContent();
+      const blockMap = currentContent.getBlockMap();
+      const currentBlockKey = this.props.editorState.getSelection().getAnchorKey();
+      const currentBlock = blockMap.filter(block => block.getKey() === currentBlockKey).first();
+      this.toggleExpand(currentBlock, 'COLLAPSE');
     }
 
+    // Expand
     if (hasCommandModifier(e) && !e.shiftKey && e.which === 40) {
       e.preventDefault();
-      // const currentContent = this.props.editorState.getCurrentContent();
-      // const blockMap = currentContent.getBlockMap();
-      // const currentBlockKey = this.props.editorState.getSelection().getAnchorKey();
-      // const currentBlock = blockMap.filter(block => block.getKey() === currentBlockKey).first();
-      // this.toggleExpand(currentBlock, 'expand');
+      const currentContent = this.props.editorState.getCurrentContent();
+      const blockMap = currentContent.getBlockMap();
+      const currentBlockKey = this.props.editorState.getSelection().getAnchorKey();
+      const currentBlock = blockMap.filter(block => block.getKey() === currentBlockKey).first();
+      // Prevents expansion of already-expanded parent from expanding children nodes
+      if (!currentBlock.getData().get('isExpanded')) {
+        this.toggleExpand(currentBlock, 'EXPAND');
+      }
     }
 
+    // Enter note
     if (hasCommandModifier(e) && !e.shiftKey && e.which === 13) {
       e.preventDefault();
       console.log('toggle-note-field');
@@ -206,16 +227,65 @@ class Tree extends Component {
     );
   }
 
+  presavePrep() {
+    const blockMap = this.props.editorState.getCurrentContent().getBlockMap();
+    const updatedBlockMap = blockMap.map(block =>
+      new ContentBlock({
+        characterList: block.getCharacterList(),
+        key: block.getKey(),
+        text: block.getText(),
+        type: block.getType(),
+        depth: block.getDepth(),
+        data: block.getData()
+          .set('isExpanded', block.getData().has('isExpanded') ?
+            block.getData().get('isExpanded') : true
+          )
+          .set('isVisible', block.getData().has('isVisible') ?
+            block.getData().get('isVisible') : true
+          )
+          .set('note', block.getData().has('note') ?
+            block.getData().get('note') : ''
+          )
+          .set('parentKey', this.getParentKey(block)),
+      })
+    );
+
+    this.handleChange(
+      EditorState.push(
+        this.props.editorState,
+        ContentState
+          .createFromBlockArray(updatedBlockMap.toArray())
+          .set('selectionAfter', this.props.editorState.getSelection()),
+        'change-block-data'
+      )
+    );
+  }
+
   syncWithDataStore() {
+    this.presavePrep();
     this.props.save(
       convertToRaw(this.props.editorState.getCurrentContent())
     );
   }
 
-  toggleExpand(contentBlock) {
-    const blockMap = this.props.editorState.getCurrentContent().getBlockMap();
+  toggleExpand(contentBlock, behavior) {
+    const currentContent = this.props.editorState.getCurrentContent();
+    const blockMap = currentContent.getBlockMap();
     const index = blockMap.toList().indexOf(contentBlock);
     const depth = contentBlock.getDepth();
+
+    const interactionType = () => {
+      switch (behavior) {
+        case 'EXPAND':
+          return true;
+        case 'COLLAPSE':
+          return false;
+        case 'TOGGLE':
+          return !contentBlock.getData().get('isExpanded');
+        default:
+          return true;
+      }
+    };
 
     const toggledBlock = new ContentBlock({
       characterList: contentBlock.getCharacterList(),
@@ -223,12 +293,31 @@ class Tree extends Component {
       text: contentBlock.getText(),
       type: contentBlock.getType(),
       depth: contentBlock.getDepth(),
-      data: contentBlock.getData().set('isExpanded', !contentBlock.getData().get('isExpanded', true)),
+      data: contentBlock.getData().set('isExpanded', interactionType()),
     });
 
     const children = blockMap
       .skipWhile(block => blockMap.toList().indexOf(block) <= index)
       .takeWhile(block => block.getDepth() > depth)
+      .filter((block, key, list) => {
+        if (behavior === 'COLLAPSE') { return true; }
+        console.log(key);
+        // if (!block.getData().get('isExpanded')) {
+        //   lastCollapsedParent = block;
+        // }
+        //
+        // if (lastCollapsedParent && block.getDepth() > lastCollapsedParent.getDepth()) {
+        //   return false;
+        // }
+
+        return block.getDepth() === depth + 1 ||
+          (block.getData().get('parentKey').length &&
+            currentContent
+              .getBlockForKey(block.getData().get('parentKey'))
+              .getData().get('isExpanded')
+          )
+        ;
+      })
       .map(block =>
         new ContentBlock({
           characterList: block.getCharacterList(),
@@ -236,7 +325,7 @@ class Tree extends Component {
           text: block.getText(),
           type: block.getType(),
           depth: block.getDepth(),
-          data: block.getData().set('isVisible', !contentBlock.getData().get('isExpanded', true)),
+          data: block.getData().set('isVisible', interactionType()),
         })
       );
 
@@ -258,6 +347,7 @@ class Tree extends Component {
   }
 
   entryRenderer(contentBlock) {
+    this.getParentKey(contentBlock);
     const depthOfCurrentBlock = contentBlock.getDepth();
     let depthOfNextBlock = -1;
 
@@ -268,23 +358,11 @@ class Tree extends Component {
         .getDepth();
     }
 
-    if (!contentBlock.getData().has('isExpanded')) {
-      contentBlock.getData().set('isExpanded', true);
-    }
-
-    if (!contentBlock.getData().has('isVisible')) {
-      contentBlock.getData().set('isVisible', true);
-    }
-
-    if (!contentBlock.getData().has('note')) {
-      contentBlock.getData().set('note', '');
-    }
-
     const hasChildren = depthOfCurrentBlock < depthOfNextBlock;
     const isExpanded = contentBlock.getData().get('isExpanded', true);
     const isVisible = contentBlock.getData().get('isVisible', true);
     const note = contentBlock.getData().get('note');
-    const toggleExpand = () => this.toggleExpand(contentBlock);
+    const toggleExpand = () => this.toggleExpand(contentBlock, 'TOGGLE');
 
     return {
       component: Entry,

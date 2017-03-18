@@ -14,6 +14,7 @@ import DB from '../../firebase';
 
 // GET
 const loadRequest = () => ({ type: APP_LOAD_REQUEST });
+// TODO handle empty DB
 const loadResolve = blocks => ({
   type: APP_LOAD_RESOLVE,
   editorState: EditorState.createWithContent(
