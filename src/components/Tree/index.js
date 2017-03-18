@@ -228,17 +228,23 @@ class Tree extends Component {
   }
 
   presavePrep() {
-    const blockMap = this.props.editorState.getCurrentContent().getBlockMap();
-    const updatedBlockMap = blockMap.map(block =>
-      new ContentBlock({
+    const currentContent = this.props.editorState.getCurrentContent();
+    const blockMap = currentContent.getBlockMap();
+    const updatedBlockMap = blockMap.map((block) => {
+      const blockAfter = currentContent.getBlockAfter(block.getKey());
+      return new ContentBlock({
         characterList: block.getCharacterList(),
         key: block.getKey(),
         text: block.getText(),
         type: block.getType(),
         depth: block.getDepth(),
         data: block.getData()
+          // Set defaults if nonexistent
           .set('isExpanded', block.getData().has('isExpanded') ?
             block.getData().get('isExpanded') : true
+          )
+          .set('hasChildren', blockAfter &&
+            blockAfter.getDepth() > block.getDepth() ? true : 0
           )
           .set('isVisible', block.getData().has('isVisible') ?
             block.getData().get('isVisible') : true
@@ -247,8 +253,8 @@ class Tree extends Component {
             block.getData().get('note') : ''
           )
           .set('parentKey', this.getParentKey(block)),
-      })
-    );
+      });
+    });
 
     this.handleChange(
       EditorState.push(
@@ -296,22 +302,48 @@ class Tree extends Component {
       data: contentBlock.getData().set('isExpanded', interactionType()),
     });
 
+    let collapsedNode = { depth: -1, hasBeenCalled: 0 };
     const children = blockMap
       .skipWhile(block => blockMap.toList().indexOf(block) <= index)
       .takeWhile(block => block.getDepth() > depth)
-      .filter((block, key, list) => {
+      .filter((block) => {
+        const blockBefore = currentContent.getBlockBefore(block.getKey());
+        // Collapse all
         if (behavior === 'COLLAPSE') { return true; }
-        console.log(key);
-        // if (!block.getData().get('isExpanded')) {
-        //   lastCollapsedParent = block;
-        // }
-        //
-        // if (lastCollapsedParent && block.getDepth() > lastCollapsedParent.getDepth()) {
-        //   return false;
-        // }
 
-        return block.getDepth() === depth + 1 ||
-          (block.getData().get('parentKey').length &&
+        if (
+          behavior === 'EXPAND' ||
+          (behavior === 'TOGGLE' && !contentBlock.getData().get('isExpanded'))
+        ) {
+          // if
+          //   block is collapsed &&
+          //   it is a child or nth grandchild of the toggled node &&
+          //   a collapsed node has not yet been found...
+          if (
+            !blockBefore.getData().get('isExpanded') &&
+            blockBefore.getDepth() >= depth + 1 &&
+            collapsedNode.hasBeenCalled === 0
+          ) {
+            // Note its depth
+            collapsedNode.depth = blockBefore.getDepth();
+            // Note that a collapsed node has been found
+            // (in order to skip this block for collapsed nodes within this one)
+            collapsedNode.hasBeenCalled = 1;
+          }
+
+          // End case: block is no longer within collapsed node
+          if (block.getDepth() <= collapsedNode.depth) {
+            // Reset
+            collapsedNode = { depth: -1, hasBeenCalled: 0 };
+          }
+
+          if (collapsedNode.hasBeenCalled && block.getDepth() > collapsedNode.depth) {
+            return false;
+          }
+        }
+
+        return block.getDepth() === depth + 1
+          || (block.getData().get('parentKey').length &&
             currentContent
               .getBlockForKey(block.getData().get('parentKey'))
               .getData().get('isExpanded')
