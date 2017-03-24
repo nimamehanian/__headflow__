@@ -1,4 +1,6 @@
+import { Map, List } from 'immutable';
 import {
+  ContentBlock,
   EditorState,
   convertFromRaw
 } from 'draft-js';
@@ -13,7 +15,20 @@ import {
 const initialState = {
   isSaving: false,
   editorState: EditorState.createWithContent(convertFromRaw({
-    blocks: [{ text: 'Loading', type: 'unordered-list-item', depth: 0 }],
+    blocks: [new ContentBlock({
+      characterList: List(),
+      key: '',
+      text: 'Loading...',
+      type: 'unordered-list-item',
+      depth: 0,
+      data: Map({
+        hasChildren: 0,
+        isExpanded: true,
+        isVisible: true,
+        note: '',
+        parentKey: '',
+      }),
+    })],
     entityMap: {},
   })),
 };

@@ -23,6 +23,8 @@ class Tree extends Component {
     super(props);
     this.state = {};
     this.getParentKey = this.getParentKey.bind(this);
+    this.getFirstChildKey = this.getFirstChildKey.bind(this);
+    this.getLastChildKey = this.getLastChildKey.bind(this);
     this.keyBindingFn = this.keyBindingFn.bind(this);
     this.handleKeyCommand = this.handleKeyCommand.bind(this);
     this.handleChange = this.handleChange.bind(this);
@@ -30,6 +32,7 @@ class Tree extends Component {
     this.handleKeyDown = debounce(this.syncWithDataStore, 3000, { leading: false });
     this.syncWithDataStore = this.syncWithDataStore.bind(this);
     this.toggleExpand = this.toggleExpand.bind(this);
+    this.hasChildren = this.hasChildren.bind(this);
     this.entryRenderer = this.entryRenderer.bind(this);
   }
 
@@ -56,6 +59,30 @@ class Tree extends Component {
     return parent.first() ? parent.first().getKey() : '';
   }
 
+  getFirstChildKey(parentBlock) {
+    const currentContent = this.props.editorState.getCurrentContent();
+    const blockMap = currentContent.getBlockMap();
+    const index = blockMap.toList().indexOf(parentBlock);
+    return blockMap
+      .skipWhile(block => blockMap.toList().indexOf(block) <= index)
+      .take(1)
+      .first()
+      .getKey();
+  }
+
+  getLastChildKey(contentBlock) {
+    const currentContent = this.props.editorState.getCurrentContent();
+    const blockMap = currentContent.getBlockMap();
+    const index = blockMap.toList().indexOf(contentBlock);
+    const depth = contentBlock.getDepth();
+    return blockMap
+      .skipWhile(block => blockMap.toList().indexOf(block) <= index)
+      .takeWhile(block => block.getDepth() > depth)
+      .filter(block => block.getDepth() === depth + 1)
+      .last()
+      .getKey();
+  }
+
   keyBindingFn(e) {
     // Move up
     if (hasCommandModifier(e) && e.shiftKey && e.which === 38) {
@@ -69,6 +96,14 @@ class Tree extends Component {
       const currentBlockChildren = blockMap
         .skipWhile(block => blockMap.toList().indexOf(block) <= currentBlockIndex)
         .takeWhile(block => block.getDepth() > currentBlockDepth);
+
+      const firstChildKey = currentBlock.first().getData().get('parentKey').length ?
+        this.getFirstChildKey(
+          currentContent.getBlockForKey(
+            currentBlock.first().getData().get('parentKey')
+          )
+        ) :
+        blockMap.filter(b => b.getDepth() === 0).first().getKey();
 
       const prevBlock = blockMap
         .toList()
@@ -105,15 +140,17 @@ class Tree extends Component {
         .concat(currentBlock, currentBlockChildren, prevBlock, prevBlockChildren, trailingBlocks)
         .toArray();
 
-      this.handleChange(
-        EditorState.push(
-          this.props.editorState,
-          ContentState
-          .createFromBlockArray(updatedBlockMap)
-          .set('selectionAfter', this.props.editorState.getSelection()),
-          'move-block'
-        )
-      );
+      if (currentBlockKey !== firstChildKey) {
+        this.handleChange(
+          EditorState.push(
+            this.props.editorState,
+            ContentState
+            .createFromBlockArray(updatedBlockMap)
+            .set('selectionAfter', this.props.editorState.getSelection()),
+            'move-block'
+          )
+        );
+      }
     }
 
     // Move down
@@ -129,6 +166,14 @@ class Tree extends Component {
       const currentBlockChildren = blockMap
         .skipWhile(block => blockMap.toList().indexOf(block) <= currentBlockIndex)
         .takeWhile(block => block.getDepth() > currentBlockDepth);
+
+      const lastChildKey = currentBlock.first().getData().get('parentKey').length ?
+        this.getLastChildKey(
+          currentContent.getBlockForKey(
+            currentBlock.first().getData().get('parentKey')
+          )
+        ) :
+        blockMap.filter(b => b.getDepth() === 0).last().getKey();
 
       const nextBlock = blockMap
         .toList()
@@ -147,8 +192,8 @@ class Tree extends Component {
         .takeWhile(block => block.getDepth() > nextBlockDepth);
 
       const leadingBlocks = blockMap
-          .takeWhile(block => block.getKey() !== currentBlockKey)
-          .delete(currentBlockKey);
+        .takeWhile(block => block.getKey() !== currentBlockKey)
+        .delete(currentBlockKey);
 
       const trailingBlocks = blockMap
         .skipWhile(block =>
@@ -164,15 +209,17 @@ class Tree extends Component {
         .concat(nextBlock, nextBlockChildren, currentBlock, currentBlockChildren, trailingBlocks)
         .toArray();
 
-      this.handleChange(
-        EditorState.push(
-          this.props.editorState,
-          ContentState
+      if (currentBlockKey !== lastChildKey) {
+        this.handleChange(
+          EditorState.push(
+            this.props.editorState,
+            ContentState
             .createFromBlockArray(updatedBlockMap)
             .set('selectionAfter', this.props.editorState.getSelection()),
-          'move-block'
-        )
-      );
+            'move-block'
+          )
+        );
+      }
     }
 
     // Collapse
@@ -231,7 +278,7 @@ class Tree extends Component {
     const currentContent = this.props.editorState.getCurrentContent();
     const blockMap = currentContent.getBlockMap();
     const updatedBlockMap = blockMap.map((block) => {
-      const blockAfter = currentContent.getBlockAfter(block.getKey());
+      const nextBlock = currentContent.getBlockAfter(block.getKey());
       return new ContentBlock({
         characterList: block.getCharacterList(),
         key: block.getKey(),
@@ -243,9 +290,7 @@ class Tree extends Component {
           .set('isExpanded', block.getData().has('isExpanded') ?
             block.getData().get('isExpanded') : true
           )
-          .set('hasChildren', blockAfter &&
-            blockAfter.getDepth() > block.getDepth() ? true : 0
-          )
+          .set('hasChildren', !!(nextBlock && (nextBlock.getDepth() > block.getDepth())))
           .set('isVisible', block.getData().has('isVisible') ?
             block.getData().get('isVisible') : true
           )
@@ -378,20 +423,30 @@ class Tree extends Component {
     setTimeout(this.syncWithDataStore, 0);
   }
 
-  entryRenderer(contentBlock) {
-    this.getParentKey(contentBlock);
+  hasChildren(contentBlock) {
+    const currentContent = this.props.editorState.getCurrentContent();
     const depthOfCurrentBlock = contentBlock.getDepth();
     let depthOfNextBlock = -1;
 
-    if (this.props.editorState.getCurrentContent().getBlockAfter(contentBlock.getKey())) {
+    if (currentContent.getBlockAfter(contentBlock.getKey())) {
       depthOfNextBlock = this.props.editorState
         .getCurrentContent()
         .getBlockAfter(contentBlock.getKey())
         .getDepth();
     }
 
-    const hasChildren = depthOfCurrentBlock < depthOfNextBlock;
-    const isExpanded = contentBlock.getData().get('isExpanded', true);
+    return depthOfNextBlock > depthOfCurrentBlock;
+  }
+
+  entryRenderer(contentBlock) {
+    this.getParentKey(contentBlock);
+
+    const hasChildren = contentBlock.getData().get('hasChildren') ||
+      this.hasChildren(contentBlock);
+
+    const isExpanded = !!hasChildren &&
+      contentBlock.getData().get('isExpanded', true);
+
     const isVisible = contentBlock.getData().get('isVisible', true);
     const note = contentBlock.getData().get('note');
     const toggleExpand = () => this.toggleExpand(contentBlock, 'TOGGLE');

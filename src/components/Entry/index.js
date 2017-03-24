@@ -6,21 +6,22 @@ class Entry extends Component {
   constructor(props) {
     super(props);
     this.state = {};
+    this.checkVisibility = this.checkVisibility.bind(this);
     this.handleClick = this.handleClick.bind(this);
   }
 
-  // TODO pull conditionals into a method call
-
   componentDidMount() {
-    if (!this.props.blockProps.isVisible) {
-      this.entry.parentNode.parentNode.style.listStyleType = 'none';
-    } else {
-      this.entry.parentNode.parentNode.style.listStyleType = 'disc';
-    }
+    this.checkVisibility();
   }
 
   componentWillReceiveProps(nextProps) {
-    if (!nextProps.blockProps.isVisible) {
+    this.checkVisibility(nextProps);
+  }
+
+  checkVisibility(nextProps) {
+    if ((nextProps && !nextProps.blockProps.isVisible) ||
+      !this.props.blockProps.isVisible
+    ) {
       this.entry.parentNode.parentNode.style.listStyleType = 'none';
     } else {
       this.entry.parentNode.parentNode.style.listStyleType = 'disc';
@@ -29,11 +30,7 @@ class Entry extends Component {
 
   handleClick() {
     this.props.blockProps.toggleExpand();
-    if (!this.props.blockProps.isVisible) {
-      this.entry.parentNode.parentNode.style.listStyleType = 'none';
-    } else {
-      this.entry.parentNode.parentNode.style.listStyleType = 'disc';
-    }
+    this.checkVisibility();
   }
 
   render() {
@@ -52,7 +49,8 @@ class Entry extends Component {
               contentEditable={false}
             >
               {
-                this.props.blockProps.hasChildren && this.props.blockProps.isExpanded ?
+                this.props.blockProps.hasChildren &&
+                this.props.blockProps.isExpanded ?
                   <i className="ion-android-remove" /> :
                   <i className="ion-android-add" />
               }
@@ -69,7 +67,10 @@ class Entry extends Component {
 
 Entry.propTypes = {
   blockProps: PropTypes.shape({
-    hasChildren: PropTypes.bool.isRequired,
+    hasChildren: PropTypes.oneOfType([
+      PropTypes.bool,
+      PropTypes.number,
+    ]).isRequired,
     isExpanded: PropTypes.bool.isRequired,
     isVisible: PropTypes.bool.isRequired,
     note: PropTypes.string,
