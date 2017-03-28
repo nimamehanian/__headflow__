@@ -1,13 +1,16 @@
 import firebase from 'firebase';
+import {
+  FIREBASE_API_KEY,
+  FB_MSG_SEND_ID
+} from '../keys';
 
 firebase.initializeApp({
-  apiKey: 'AIzaSyB601HaResDGLGvZDrXd-OKcvDeRfjQrNY',
+  apiKey: FIREBASE_API_KEY,
   authDomain: 'headflow-fde08.firebaseapp.com',
   databaseURL: 'https://headflow-fde08.firebaseio.com',
-  messagingSenderId: '385618110980',
+  messagingSenderId: FB_MSG_SEND_ID,
   storageBucket: 'headflow-fde08.appspot.com',
 });
 
-const DB = firebase.database();
-
-export default DB;
+export const DB = firebase.database();
+export const Auth = firebase.auth();
