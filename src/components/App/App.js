@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { Component, PropTypes } from 'react';
 import Header from '../Header';
 import Tree from '../Tree';
 
@@ -9,13 +9,16 @@ class App extends Component {
   }
 
   componentDidMount() {
-    this.props.load();
+    this.props.load(this.props.user);
   }
 
   render() {
     return (
       <div className="app">
-        <Header isSaving={this.props.isSaving} />
+        <Header
+          isSaving={this.props.isSaving}
+          username={'Nima Mehanian' || this.props.user.displayName || this.props.user.email}
+        />
         <Tree
           save={this.props.save}
           update={this.props.update}
@@ -25,5 +28,9 @@ class App extends Component {
     );
   }
 }
+
+App.propTypes = {
+  user: PropTypes.objectOf(PropTypes.any).isRequired,
+};
 
 export default App;

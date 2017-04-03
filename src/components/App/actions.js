@@ -10,11 +10,10 @@ import {
   APP_SAVE_RESOLVE,
   APP_SAVE_FAILURE
 } from './actionTypes';
-import DB from '../../firebase';
+import { DB } from '../../firebase';
 
 // GET
 const loadRequest = () => ({ type: APP_LOAD_REQUEST });
-// TODO handle empty DB
 const loadResolve = blocks => ({
   type: APP_LOAD_RESOLVE,
   editorState: EditorState.createWithContent(
@@ -22,11 +21,10 @@ const loadResolve = blocks => ({
   ),
 });
 // const loadFailure = () => ({ type: APP_LOAD_FAILURE });
-
-export const load = () => (
+export const load = user => (
   (dispatch) => {
     dispatch(loadRequest());
-    DB.ref('/blocks').once('value', (blocks) => {
+    DB.ref(`/blocks/${user.uid}`).once('value', (blocks) => {
       dispatch(loadResolve(blocks.val()));
     });
   }
@@ -36,7 +34,6 @@ export const load = () => (
 const saveRequest = () => ({ type: APP_SAVE_REQUEST });
 const saveResolve = () => ({ type: APP_SAVE_RESOLVE });
 const saveFailure = () => ({ type: APP_SAVE_FAILURE });
-
 export const save = contentState => (
   (dispatch) => {
     dispatch(saveRequest());

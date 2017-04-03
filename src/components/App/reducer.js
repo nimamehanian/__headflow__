@@ -22,7 +22,7 @@ const initialState = {
       type: 'unordered-list-item',
       depth: 0,
       data: Map({
-        hasChildren: 0,
+        hasChildren: false,
         isExpanded: true,
         isVisible: true,
         note: '',

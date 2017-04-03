@@ -1,24 +1,90 @@
 .header
   background $ebony
   color $ivory
-  height 34px
+  height 48px
+  line-height 48px
   overflow hidden
   display flex
   align-items center
   justify-content space-between
+  user-select none
   .links-left
     display flex
     align-items center
     .logo
+      color $logoBlue
+      font-size 28px
+      font-family 'Operator Mono XLight Italic'
+      text-transform capitalize
       padding-left 6px
   .links-right
     display flex
     align-items center
-    i
-      font-size 28px
+    i.saving, i.saved
+      height 48px
+      font-size 32px
       padding 0px 8px
       border-left 1px solid $evening
+      border-right 1px solid $evening
       &.saving
         color $ivory
       &.saved
         color $leaf
+    & .header-element
+      padding 0px 16px
+      &.avatar
+        cursor pointer
+        letter-spacing 0.6px
+        font-family 'Lato Thin'
+      & .arrow-down
+        padding-left 8px
+        position relative
+        top 2px
+  .menu
+    cursor pointer
+    z-index 9
+    position absolute
+    top 56px
+    right 8px
+    width 168px
+    background $ivory
+    box-shadow rgba(0, 0, 0, 0.15) 0px 1px 6px,
+      rgba(0, 0, 0, 0.15) 0px 1px 4px
+    display none
+    padding-bottom 4px
+    .menu-item
+      font-size 18px
+      font-family 'Lato Light'
+      color $evening
+      letter-spacing 0.6px
+      font-variant small-caps
+      height 34px
+      padding 0px 16px
+      line-height 34px
+      transition all 450ms cubic-bezier(0.23, 1, 0.32, 1) 0ms
+      &:hover
+        background rgba(153, 206, 212, 0.6)
+      i
+        margin-right 8px
+      &.disabled
+        color $dust
+        cursor not-allowed
+        &:hover
+          background $ivory
+      &.divider
+        background $dust
+        height 1px
+        margin 4px 0px
+        opacity 0.6
+    &.is-visible
+      display block
+  .screen
+    position absolute
+    top 0px
+    right 0px
+    bottom 0px
+    left 0px
+    z-index 8
+    display none
+    &.is-visible
+      display block

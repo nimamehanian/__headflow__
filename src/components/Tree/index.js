@@ -13,10 +13,9 @@ import {
   getDefaultKeyBinding
 } from 'draft-js';
 import Entry from '../Entry';
+// import { Auth } from '../../firebase';
 
-const {
-  hasCommandModifier,
-} = KeyBindingUtil;
+const { hasCommandModifier } = KeyBindingUtil;
 
 class Tree extends Component {
   constructor(props) {
@@ -43,6 +42,9 @@ class Tree extends Component {
         'unordered-list-item'
       )
     );
+    // Auth.onAuthStateChanged((user) => {
+    //   console.log(user);
+    // });
     // this.editor.focus();
   }
 
@@ -286,11 +288,19 @@ class Tree extends Component {
         type: block.getType(),
         depth: block.getDepth(),
         data: block.getData()
-          // Set defaults if nonexistent
+          // Set defaults if nonexistent:
           .set('isExpanded', block.getData().has('isExpanded') ?
             block.getData().get('isExpanded') : true
           )
+
+          // True, if there is a next block and its depth is greater than current
           .set('hasChildren', !!(nextBlock && (nextBlock.getDepth() > block.getDepth())))
+
+          // If block has no children, set isExpanded to true
+          .set('isExpanded', !block.getData().get('hasChildren') ?
+            true : block.getData().get('isExpanded')
+          )
+
           .set('isVisible', block.getData().has('isVisible') ?
             block.getData().get('isVisible') : true
           )

@@ -14,8 +14,8 @@ const mapStateToProps = state => ({
 });
 
 const mapDispatchToProps = dispatch => ({
-  load() {
-    dispatch(loadAction());
+  load(user) {
+    dispatch(loadAction(user));
   },
 
   save(contentState) {
