@@ -1,7 +1,4 @@
-import {
-  EditorState,
-  convertFromRaw
-} from 'draft-js';
+import { EditorState, convertFromRaw } from 'draft-js';
 import {
   APP_LOAD_REQUEST,
   APP_LOAD_RESOLVE,
@@ -24,7 +21,9 @@ const loadResolve = blocks => ({
 export const load = user => (
   (dispatch) => {
     dispatch(loadRequest());
-    DB.ref(`/blocks/${user.uid}`).once('value', (blocks) => {
+    console.log('LOADING HERE', 'USER:', user);
+    DB.ref(`userData/${user.uid}/blocks`).once('value', (blocks) => {
+      console.log('BLOCKS HERE', blocks.val());
       dispatch(loadResolve(blocks.val()));
     });
   }
@@ -34,11 +33,28 @@ export const load = user => (
 const saveRequest = () => ({ type: APP_SAVE_REQUEST });
 const saveResolve = () => ({ type: APP_SAVE_RESOLVE });
 const saveFailure = () => ({ type: APP_SAVE_FAILURE });
-export const save = contentState => (
+export const save = (uid, contentState) => (
   (dispatch) => {
     dispatch(saveRequest());
-    DB.ref('/').set(contentState)
+    DB.ref(`userData/${uid}`).set(contentState)
       .then(() => dispatch(saveResolve()))
       .catch(() => dispatch(saveFailure()));
   }
 );
+
+// const blocks = b.map(block => (
+//   new ContentBlock({
+//     characterList: List(),
+//     key: block.key,
+//     text: block.text,
+//     type: block.type,
+//     depth: block.depth,
+//     data: Map({
+//       hasChildren: block.data.hasChildren,
+//       isExpanded: block.data.isExpanded,
+//       isVisible: block.data.isVisible,
+//       note: block.data.note,
+//       parentKey: block.data.parentKey,
+//     }),
+//   })
+// ));

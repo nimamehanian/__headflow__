@@ -19,7 +19,9 @@ class Header extends Component {
   }
 
   signOut() {
-    Auth.signOut();
+    Auth.signOut()
+      .then(() => console.log('Signed out.'))
+      .catch(() => console.error('Error: Could not sign out.'));
   }
 
   render() {

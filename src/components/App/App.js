@@ -17,12 +17,13 @@ class App extends Component {
       <div className="app">
         <Header
           isSaving={this.props.isSaving}
-          username={'Nima Mehanian' || this.props.user.displayName || this.props.user.email}
+          username={this.props.user.displayName || this.props.user.email}
         />
         <Tree
           save={this.props.save}
           update={this.props.update}
           editorState={this.props.editorState}
+          userId={this.props.user.uid}
         />
       </div>
     );

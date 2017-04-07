@@ -18,8 +18,8 @@ const mapDispatchToProps = dispatch => ({
     dispatch(loadAction(user));
   },
 
-  save(contentState) {
-    dispatch(saveAction(contentState));
+  save(uid, contentState) {
+    dispatch(saveAction(uid, contentState));
   },
 
   update(editorState) {

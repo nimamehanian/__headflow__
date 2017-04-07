@@ -5,7 +5,7 @@
 html, body
   color $storm
   background $bg
-  font-family 'Lato Thin'
+  font-family 'Lato Light'
   outline 0px
   overflow hidden
 
@@ -40,3 +40,13 @@ input
 
 :focus
   outline none
+
+@keyframes autofill
+  to {
+    color $storm
+    background transparent
+  }
+
+input:-webkit-autofill
+  -webkit-animation-name autofill
+  -webkit-animation-fill-mode both

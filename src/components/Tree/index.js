@@ -13,7 +13,7 @@ import {
   getDefaultKeyBinding
 } from 'draft-js';
 import Entry from '../Entry';
-// import { Auth } from '../../firebase';
+import { Auth } from '../../firebase';
 
 const { hasCommandModifier } = KeyBindingUtil;
 
@@ -42,10 +42,6 @@ class Tree extends Component {
         'unordered-list-item'
       )
     );
-    // Auth.onAuthStateChanged((user) => {
-    //   console.log(user);
-    // });
-    // this.editor.focus();
   }
 
   getParentKey(contentBlock) {
@@ -325,6 +321,7 @@ class Tree extends Component {
   syncWithDataStore() {
     this.presavePrep();
     this.props.save(
+      this.props.userId,
       convertToRaw(this.props.editorState.getCurrentContent())
     );
   }

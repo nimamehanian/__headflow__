@@ -1,12 +1,23 @@
 import React, { Component } from 'react';
+import { Link } from 'react-router-dom';
 
 class Login extends Component {
   constructor(props) {
     super(props);
     this.state = { values: { email: '', password: '' } };
+    this.handleNameChange = this.handleNameChange.bind(this);
     this.handleEmailChange = this.handleEmailChange.bind(this);
     this.handlePasswordChange = this.handlePasswordChange.bind(this);
     this.handleSubmit = this.handleSubmit.bind(this);
+  }
+
+  handleNameChange(event) {
+    this.setState({
+      values: {
+        ...this.state.values,
+        name: event.target.value,
+      },
+    });
   }
 
   handleEmailChange(event) {
@@ -29,10 +40,14 @@ class Login extends Component {
 
   handleSubmit(event) {
     event.preventDefault();
-    this.props.login(
-      this.state.values.email,
-      this.state.values.password
-    );
+    if (this.props.path === '/signup') {
+      this.props.signup(this.state.values);
+    } else {
+      this.props.login(
+        this.state.values.email,
+        this.state.values.password
+      );
+    }
   }
 
   render() {
@@ -46,6 +61,7 @@ class Login extends Component {
             placeholder="Email"
             onChange={this.handleEmailChange}
             value={this.state.values.email}
+            tabIndex="0"
           />
           <input
             name="password"
@@ -54,7 +70,31 @@ class Login extends Component {
             onChange={this.handlePasswordChange}
             value={this.state.values.password}
           />
-          <button type="submit">Log in</button>
+          <button type="submit">
+            {this.props.path === '/signup' ? 'Sign up' : 'Log in'}
+          </button>
+          {this.props.path === '/signup' ?
+            <span>
+              <p className="post-action-btn-text">By signing up, I agree to the<br />
+                <Link to="/tos">Terms of Service</Link> and&nbsp;
+                <Link to="/privacy">Privacy Policy</Link>.
+              </p>
+              <p className="post-action-btn-text">
+                Have an account?&nbsp;
+                <Link to="/login">Log in</Link>.
+              </p>
+            </span>
+            :
+            <span>
+              <p className="post-action-btn-text">
+                <Link to="/forgot">Forgot your password?</Link>
+              </p>
+              <p className="post-action-btn-text">
+                Don&apos;t have an account?&nbsp;
+                <Link to="/signup">Sign up</Link>.
+              </p>
+            </span>
+          }
         </form>
       </div>
     );
@@ -62,3 +102,15 @@ class Login extends Component {
 }
 
 export default Login;
+
+// {/* TODO Fix this conditional */}
+// {this.props.path === '/signup' ?
+//   <input
+//     name="name"
+//     type="text"
+//     placeholder="Full Name"
+//     onChange={this.handleNameChange}
+//     value={this.state.values.name}
+//     tabIndex="0"
+//   /> : null
+// }

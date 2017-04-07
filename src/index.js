@@ -6,10 +6,12 @@ import thunk from 'redux-thunk';
 import { Route, Redirect } from 'react-router-dom';
 import { ConnectedRouter, routerMiddleware, routerReducer } from 'react-router-redux';
 import createHistory from 'history/createBrowserHistory';
+import { genKey } from 'draft-js';
 import App from './components/App';
 import appReducer from './components/App/reducer';
 import Login from './components/Login';
-import { Auth } from './firebase';
+import authReducer from './components/Login/reducer';
+import { Auth, DB } from './firebase';
 import './styles/manifest.styl';
 
 const history = createHistory();
@@ -18,6 +20,7 @@ const middleware = routerMiddleware(history);
 const mainStore = createStore(
   combineReducers({
     app: appReducer,
+    auth: authReducer,
     routing: routerReducer,
   }),
   // Enable to access devTools in browser console
@@ -34,12 +37,46 @@ class Root extends Component {
 
   componentWillMount() {
     Auth.onAuthStateChanged((user) => {
-      console.log('auth state changed:', user);
-      this.setState({ user });
+      if (!user) {
+        this.setState({ user });
+      }
+      if (user) {
+        const userRef = DB.ref(`users/${user.uid}`);
+        const userDataRef = DB.ref(`userData/${user.uid}`);
+        userRef.once('value', (data) => {
+          if (!data.val()) {
+            // user does not exist, so create entry
+            const initialUserData = {
+              blocks: [
+                {
+                  data: {
+                    hasChildren: false,
+                    isExpanded: true,
+                    isVisible: true,
+                    note: '',
+                    parentKey: '',
+                  },
+                  depth: 0,
+                  key: genKey(),
+                  text: `Hello, ${user.displayName || user.email}! Let's get started :)`,
+                  type: 'unordered-list-item',
+                },
+              ],
+            };
+            userRef.set({
+              email: user.email,
+              displayName: user.displayName || null,
+            });
+            userDataRef.set(initialUserData)
+              .then(() => this.setState({ user }));
+          }
+        });
+      }
     });
   }
 
   render() {
+    // TODO show spinner before user resolves
     return (
       <Provider store={this.props.store}>
         <ConnectedRouter history={history}>
@@ -50,6 +87,13 @@ class Root extends Component {
               render={() => <div><h1>Hello, Headflow!</h1></div>}
             />
             <Route
+              path="/dashboard"
+              render={() => (this.state.user ?
+                <App user={this.state.user} /> :
+                <Redirect to="/login" />
+              )}
+            />
+            <Route
               path="/login"
               render={() => (this.state.user ?
                 <Redirect to="/dashboard" /> :
@@ -57,10 +101,10 @@ class Root extends Component {
               )}
             />
             <Route
-              path="/dashboard"
-              render={() => (this.state.user ?
-                <App user={this.state.user} /> :
-                <Redirect to="/login" />
+              path="/signup"
+              render={route => (this.state.user ?
+                <Redirect to="/dashboard" /> :
+                <Login path={route.match.path} />
               )}
             />
           </div>
