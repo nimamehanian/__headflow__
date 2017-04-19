@@ -13,7 +13,7 @@ import {
   getDefaultKeyBinding
 } from 'draft-js';
 import Entry from '../Entry';
-import { Auth } from '../../firebase';
+// import { Auth } from '../../firebase';
 
 const { hasCommandModifier } = KeyBindingUtil;
 
@@ -95,7 +95,7 @@ class Tree extends Component {
         .skipWhile(block => blockMap.toList().indexOf(block) <= currentBlockIndex)
         .takeWhile(block => block.getDepth() > currentBlockDepth);
 
-      const firstChildKey = currentBlock.first().getData().get('parentKey').length ?
+      const firstChildKey = currentBlock.first().getData().has('parentKey') && currentBlock.first().getData().get('parentKey').length ?
         this.getFirstChildKey(
           currentContent.getBlockForKey(
             currentBlock.first().getData().get('parentKey')
@@ -165,7 +165,7 @@ class Tree extends Component {
         .skipWhile(block => blockMap.toList().indexOf(block) <= currentBlockIndex)
         .takeWhile(block => block.getDepth() > currentBlockDepth);
 
-      const lastChildKey = currentBlock.first().getData().get('parentKey').length ?
+      const lastChildKey = currentBlock.first().getData().has('parentKey') && currentBlock.first().getData().get('parentKey').length ?
         this.getLastChildKey(
           currentContent.getBlockForKey(
             currentBlock.first().getData().get('parentKey')
@@ -246,7 +246,7 @@ class Tree extends Component {
     // Enter note
     if (hasCommandModifier(e) && !e.shiftKey && e.which === 13) {
       e.preventDefault();
-      console.log('toggle-note-field');
+      console.log('TODO: toggle-note-field');
       return 'toggle-note-field';
     }
 
@@ -474,21 +474,23 @@ class Tree extends Component {
 
   render() {
     return (
-      <div className="tree" onKeyDown={e => this.handleKeyDown(e)}>
-        <Editor
-          editorState={this.props.editorState}
-          onUpArrow={this.keyBindingFn}
-          onDownArrow={this.keyBindingFn}
-          keyBindingFn={this.keyBindingFn}
-          handleKeyCommand={this.handleKeyCommand}
-          blockRendererFn={this.entryRenderer}
-          blockRenderMap={DefaultDraftBlockRenderMap.merge(Map({
-            unstyled: { element: 'div' },
-          }))}
-          onChange={this.handleChange}
-          onTab={this.handleTab}
-          ref={(editor) => { this.editor = editor; }}
-        />
+      <div className="tree-container">
+        <div className="tree" onKeyDown={e => this.handleKeyDown(e)}>
+          <Editor
+            editorState={this.props.editorState}
+            onUpArrow={this.keyBindingFn}
+            onDownArrow={this.keyBindingFn}
+            keyBindingFn={this.keyBindingFn}
+            handleKeyCommand={this.handleKeyCommand}
+            blockRendererFn={this.entryRenderer}
+            blockRenderMap={DefaultDraftBlockRenderMap.merge(Map({
+              unstyled: { element: 'div' },
+            }))}
+            onChange={this.handleChange}
+            onTab={this.handleTab}
+            ref={(editor) => { this.editor = editor; }}
+          />
+        </div>
       </div>
     );
   }

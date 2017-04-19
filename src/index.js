@@ -69,6 +69,9 @@ class Root extends Component {
             });
             userDataRef.set(initialUserData)
               .then(() => this.setState({ user }));
+          } else {
+            // user DOES exist and is logging in
+            this.setState({ user });
           }
         });
       }
