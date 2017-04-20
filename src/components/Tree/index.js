@@ -109,6 +109,7 @@ class Tree extends Component {
 
       const prevBlock = blockMap
         .toList()
+        .filter(block => block.getDepth() === currentBlockDepth)
         .filter((block, idx, list) =>
           list.get(idx + 1) && list.get(idx + 1).getKey() === currentBlockKey
         )
@@ -141,7 +142,9 @@ class Tree extends Component {
         .concat(currentBlock, currentBlockChildren, prevBlock, prevBlockChildren, trailingBlocks)
         .toArray();
 
-      if (prevBlockDepth === currentBlockDepth && currentBlockKey !== firstChildKey) {
+      console.log('prevBlockDepth', prevBlockDepth);
+      console.log('currentBlockDepth', currentBlockDepth);
+      if (prevBlockDepth === currentBlockDepth) {
         this.handleChange(
           EditorState.push(
             this.props.editorState,
