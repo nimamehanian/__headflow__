@@ -13,7 +13,6 @@ import {
   getDefaultKeyBinding
 } from 'draft-js';
 import Entry from '../Entry';
-// import { Auth } from '../../firebase';
 
 const { hasCommandModifier } = KeyBindingUtil;
 
@@ -45,21 +44,26 @@ class Tree extends Component {
   }
 
   getParentKey(contentBlock) {
-    const currentContent = this.props.editorState.getCurrentContent();
-    const blockMap = currentContent.getBlockMap();
+    const blockMap = this.props.editorState.getCurrentContent().getBlockMap();
     const depth = contentBlock.getDepth();
     const key = contentBlock.getKey();
     const parent = blockMap
+      // Run through the entire block map, from bottom up
       .reverse()
+      // Sift through the blocks until we arrive at the passed-in block
       .skipWhile(block => block.getKey() !== key)
+      // Sift through its sibling blocks until we arrive at the first outdented block
       .skipUntil(block => block.getDepth() === depth - 1)
+      // Take it
       .take(1);
+      // It's possible for `skipUntil` to return an empty collection — if,
+      // for example, contentBlock has a depth of 0 — so if it, indeed, has
+      // one item in it, then return its key, otherwise return an empty string.
     return parent.first() ? parent.first().getKey() : '';
   }
 
   getFirstChildKey(parentBlock) {
-    const currentContent = this.props.editorState.getCurrentContent();
-    const blockMap = currentContent.getBlockMap();
+    const blockMap = this.props.editorState.getCurrentContent().getBlockMap();
     const index = blockMap.toList().indexOf(parentBlock);
     return blockMap
       .skipWhile(block => blockMap.toList().indexOf(block) <= index)
@@ -68,11 +72,10 @@ class Tree extends Component {
       .getKey();
   }
 
-  getLastChildKey(contentBlock) {
-    const currentContent = this.props.editorState.getCurrentContent();
-    const blockMap = currentContent.getBlockMap();
-    const index = blockMap.toList().indexOf(contentBlock);
-    const depth = contentBlock.getDepth();
+  getLastChildKey(parentBlock) {
+    const blockMap = this.props.editorState.getCurrentContent().getBlockMap();
+    const index = blockMap.toList().indexOf(parentBlock);
+    const depth = parentBlock.getDepth();
     return blockMap
       .skipWhile(block => blockMap.toList().indexOf(block) <= index)
       .takeWhile(block => block.getDepth() > depth)
@@ -89,16 +92,17 @@ class Tree extends Component {
       const blockMap = currentContent.getBlockMap();
       const currentBlockKey = this.props.editorState.getSelection().getAnchorKey();
       const currentBlock = blockMap.filter(block => block.getKey() === currentBlockKey);
+      const currentBlockData = currentBlock.first().getData();
       const currentBlockDepth = currentBlock.first().getDepth();
       const currentBlockIndex = blockMap.toList().indexOf(currentBlock.first());
       const currentBlockChildren = blockMap
         .skipWhile(block => blockMap.toList().indexOf(block) <= currentBlockIndex)
         .takeWhile(block => block.getDepth() > currentBlockDepth);
 
-      const firstChildKey = currentBlock.first().getData().has('parentKey') && currentBlock.first().getData().get('parentKey').length ?
+      const firstChildKey = currentBlockData.has('parentKey') && currentBlockData.get('parentKey').length ?
         this.getFirstChildKey(
           currentContent.getBlockForKey(
-            currentBlock.first().getData().get('parentKey')
+            currentBlockData.get('parentKey')
           )
         ) :
         blockMap.filter(b => b.getDepth() === 0).first().getKey();
@@ -138,6 +142,9 @@ class Tree extends Component {
         .concat(currentBlock, currentBlockChildren, prevBlock, prevBlockChildren, trailingBlocks)
         .toArray();
 
+      console.log('currentBlockKey', currentBlockKey);
+      console.log('firstChildKey', firstChildKey);
+      console.log('____________________________');
       if (currentBlockKey !== firstChildKey) {
         this.handleChange(
           EditorState.push(
@@ -159,16 +166,17 @@ class Tree extends Component {
       const firstBlockKey = currentContent.getFirstBlock().getKey();
       const currentBlockKey = this.props.editorState.getSelection().getAnchorKey();
       const currentBlock = blockMap.filter(block => block.getKey() === currentBlockKey);
+      const currentBlockData = currentBlock.first().getData();
       const currentBlockDepth = currentBlock.first().getDepth();
       const currentBlockIndex = blockMap.toList().indexOf(currentBlock.first());
       const currentBlockChildren = blockMap
         .skipWhile(block => blockMap.toList().indexOf(block) <= currentBlockIndex)
         .takeWhile(block => block.getDepth() > currentBlockDepth);
 
-      const lastChildKey = currentBlock.first().getData().has('parentKey') && currentBlock.first().getData().get('parentKey').length ?
+      const lastChildKey = currentBlockData.has('parentKey') && currentBlockData.get('parentKey').length ?
         this.getLastChildKey(
           currentContent.getBlockForKey(
-            currentBlock.first().getData().get('parentKey')
+            currentBlockData.get('parentKey')
           )
         ) :
         blockMap.filter(b => b.getDepth() === 0).last().getKey();
@@ -292,7 +300,7 @@ class Tree extends Component {
           // True, if there is a next block and its depth is greater than current
           .set('hasChildren', !!(nextBlock && (nextBlock.getDepth() > block.getDepth())))
 
-          // If block has no children, set isExpanded to true
+          // If block has no children, set `isExpanded` to true
           .set('isExpanded', !block.getData().get('hasChildren') ?
             true : block.getData().get('isExpanded')
           )
@@ -434,14 +442,12 @@ class Tree extends Component {
     const currentContent = this.props.editorState.getCurrentContent();
     const depthOfCurrentBlock = contentBlock.getDepth();
     let depthOfNextBlock = -1;
-
+    // If a block after the current block exists, get its depth
     if (currentContent.getBlockAfter(contentBlock.getKey())) {
-      depthOfNextBlock = this.props.editorState
-        .getCurrentContent()
+      depthOfNextBlock = currentContent
         .getBlockAfter(contentBlock.getKey())
         .getDepth();
     }
-
     return depthOfNextBlock > depthOfCurrentBlock;
   }
 
