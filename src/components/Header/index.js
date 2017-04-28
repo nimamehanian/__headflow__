@@ -1,4 +1,4 @@
-import React, { Component, PropTypes } from 'react';
+import React, { Component } from 'react';
 import classnames from 'classnames';
 import { Auth } from '../../firebase';
 
@@ -76,9 +76,9 @@ class Header extends Component {
   }
 }
 
-Header.propTypes = {
-  isSaving: PropTypes.bool.isRequired,
-  username: PropTypes.string.isRequired,
-};
+// Header.propTypes = {
+//   isSaving: PropTypes.bool.isRequired,
+//   username: PropTypes.string.isRequired,
+// };
 
 export default Header;

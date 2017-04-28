@@ -21,7 +21,6 @@ const loadResolve = blocks => ({
 export const load = user => (
   (dispatch) => {
     dispatch(loadRequest());
-    console.log('LOADING HERE', 'USER:', user);
     DB.ref(`userData/${user.uid}/blocks`).once('value', (blocks) => {
       dispatch(loadResolve(blocks.val()));
     });

@@ -1,6 +1,8 @@
 .tree-container
+  position relative
+  top 72px
   background $ivory
-  margin 24px
+  margin 0 24px 24px
   box-shadow rgba(0, 0, 0, 0.15) 0px 1px 6px,
     rgba(0, 0, 0, 0.15) 0px 1px 4px
   border-radius 3px
@@ -10,3 +12,19 @@
     margin 0px 84px 0px 32px
     padding 24px 0px
     font-family 'Lato Regular'
+
+.embolden
+  font-family 'Lato Bold'
+
+.italicize
+  font-family 'Lato Italic'
+
+.embolden .italicize, .italicize .embolden
+  font-family 'Lato Bold Italic'
+
+.underline
+  text-decoration underline
+
+.strikethrough
+  text-decoration line-through
+  color $dust

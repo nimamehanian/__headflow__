@@ -1,4 +1,5 @@
-import React, { Component, PropTypes } from 'react';
+import React, { Component } from 'react';
+// import range from 'lodash/range';
 import Header from '../Header';
 import Tree from '../Tree';
 
@@ -30,8 +31,17 @@ class App extends Component {
   }
 }
 
-App.propTypes = {
-  user: PropTypes.objectOf(PropTypes.any).isRequired,
-};
+// App.propTypes = {
+//   user: PropTypes.objectOf(PropTypes.any).isRequired,
+// };
 
 export default App;
+
+/*
+<div className="line-numbers">
+  {range(1, this.props.editorState
+    .getCurrentContent().getBlockMap().count() + 1)
+    .map(num => <div className="num" key={`line_${num}`}>{num}</div>)
+  }
+</div>
+*/

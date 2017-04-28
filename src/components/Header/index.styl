@@ -1,4 +1,7 @@
 .header
+  position fixed
+  top 0px
+  width 100vw
   background $ebony
   color $ivory
   height 48px
@@ -11,6 +14,8 @@
   box-shadow 0 3px 4px 0 rgba(0, 0, 0, 0.14),
     0 3px 3px -2px rgba(0, 0, 0, 0.12),
     0 1px 8px 0 rgba(0, 0, 0, 0.2)
+  z-index 8
+  will-change transform
   .links-left
     display flex
     align-items center
@@ -45,7 +50,7 @@
         top 2px
   .menu
     cursor pointer
-    z-index 9
+    z-index 10
     position absolute
     top 56px
     right 8px
@@ -87,7 +92,7 @@
     right 0px
     bottom 0px
     left 0px
-    z-index 8
+    z-index 9
     display none
     &.is-visible
       display block
