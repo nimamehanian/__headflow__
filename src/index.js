@@ -1,4 +1,5 @@
-import React, { Component, PropTypes } from 'react';
+import React, { Component } from 'react';
+// import PropTypes from 'prop-types';
 import { render } from 'react-dom';
 import { createStore, combineReducers, applyMiddleware } from 'redux';
 import { Provider } from 'react-redux';
@@ -117,9 +118,9 @@ class Root extends Component {
   }
 }
 
-Root.propTypes = {
-  store: PropTypes.objectOf(PropTypes.any).isRequired,
-};
+// Root.propTypes = {
+//   store: PropTypes.objectOf(PropTypes.any).isRequired,
+// };
 
 render(
   <Root store={mainStore} />,

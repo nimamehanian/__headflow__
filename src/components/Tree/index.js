@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import {
   Editor,
+  Block,
   Raw,
   setKeyGenerator
 } from 'slate';
@@ -51,6 +52,26 @@ const initialState = Raw.deserialize({
         },
       ],
     },
+    {
+      kind: 'block',
+      type: 'entry',
+      nodes: [
+        {
+          kind: 'text',
+          text: 'Line 5:',
+        },
+      ],
+    },
+    {
+      kind: 'block',
+      type: 'entry',
+      nodes: [
+        {
+          kind: 'text',
+          text: 'Line 6:',
+        },
+      ],
+    },
   ],
 }, { terse: true });
 
@@ -64,6 +85,9 @@ class Tree extends Component {
     };
     this.onChange = this.onChange.bind(this);
     this.onKeyDown = this.onKeyDown.bind(this);
+    this.onEnter = this.onEnter.bind(this);
+    this.moveUp = this.moveUp.bind(this);
+    this.moveDown = this.moveDown.bind(this);
     this.indent = this.indent.bind(this);
     this.outdent = this.outdent.bind(this);
   }
@@ -73,6 +97,12 @@ class Tree extends Component {
   }
 
   onKeyDown(event, data, state) {
+    // ↵ = New block
+    if (data.key === 'enter') {
+      event.preventDefault();
+      return this.onEnter(state);
+    }
+
     // ⇧⌘+↵ = Add note
     if (data.isShift && data.isMeta && data.key === 'enter') {
       event.preventDefault();
@@ -83,15 +113,13 @@ class Tree extends Component {
     // ^⌘+↑ = Move block up
     if (data.isCtrl && data.isMeta && data.key === 'up') {
       event.preventDefault();
-      console.log('MOVE UP');
-      return state;
+      return this.moveUp(state);
     }
 
     // ^⌘+↓ = Move block down
     if (data.isCtrl && data.isMeta && data.key === 'down') {
       event.preventDefault();
-      console.log('MOVE DOWN');
-      return state;
+      return this.moveDown(state);
     }
 
     // ↹ = Indent
@@ -104,6 +132,20 @@ class Tree extends Component {
     if (data.isShift && data.key === 'tab') {
       event.preventDefault();
       return this.outdent(state);
+    }
+
+    // ⌘+↑ = Collapse
+    if (data.isMeta && data.key === 'up') {
+      event.preventDefault();
+      console.log('COLLAPSE');
+      return state;
+    }
+
+    // ⌘+↓ = Expand
+    if (data.isMeta && data.key === 'down') {
+      event.preventDefault();
+      console.log('EXPAND');
+      return state;
     }
 
     // ⌘+B = Toggle embolden
@@ -126,6 +168,7 @@ class Tree extends Component {
 
     // ⌘+↵ = Toggle strikethrough (i.e., complete item)
     if (data.isMeta && data.key === 'enter') {
+      // TODO Grey out children of completed node too
       event.preventDefault();
       const markType = 'Strikethrough';
       const transform = state.transform();
@@ -152,30 +195,95 @@ class Tree extends Component {
     return null;
   }
 
+  onEnter(state) {
+    const { document: doc, startBlock: thisBlock } = state;
+    // Create block as child, if thisBlock already has children
+    if (
+      thisBlock.nodes &&
+      thisBlock.nodes.count() > 1 &&
+      thisBlock.nodes.get(1).text.length
+    ) {
+      const newBlock = Block.create({ type: 'entry' });
+      return state.transform().insertNodeByKey(
+        thisBlock.key, 1, newBlock
+      ).collapseToStartOf(newBlock).apply();
+    }
+    // Do not allow deletion of root block if it is empty
+    if (!thisBlock.nodes.get(0).text.length && doc.nodes.count() === 1) {
+      return state;
+    }
+    // Do not allow creation of multiple contiguous empty blocks
+    if (!thisBlock.nodes.get(0).text.length) {
+      // Do nothing
+      // return state;
+      // Or
+      // Delete empty block
+      return state.transform().removeNodeByKey(thisBlock.key).apply();
+    }
+    // Create block at same depth
+    return state.transform().insertBlock(Block.create({ type: 'entry' })).apply();
+  }
+
+  moveUp(state) {
+    const { document: doc, startBlock: thisBlock } = state;
+    const parent = doc.getParent(thisBlock.key);
+    const prevBlock = doc.getPreviousSibling(thisBlock.key);
+    if (!prevBlock) {
+      console.log('Cannot move block up; already at top of list.');
+      return state;
+    }
+    const parentList = doc.getParent(prevBlock.key);
+    if (parent.nodes.get(1) === thisBlock && parentList !== doc) {
+      console.log('Cannot move block out of its context.');
+      return state;
+    }
+    const index = parentList.nodes.indexOf(prevBlock);
+    return state.transform().moveNodeByKey(
+      thisBlock.key, parentList.key, index
+    ).apply();
+  }
+
+  moveDown(state) {
+    const { document: doc, startBlock: thisBlock } = state;
+    const parent = doc.getParent(thisBlock.key);
+    const nextBlock = doc.getNextSibling(thisBlock.key);
+
+    if (parent.nodes.last() === thisBlock) {
+      console.log('Cannot move block out of its context.');
+      return state;
+    }
+
+    const index = parent.nodes.indexOf(nextBlock);
+    return state.transform().moveNodeByKey(
+      thisBlock.key, parent.key, index
+    ).apply();
+  }
+
   indent(state) {
     const { document: doc, startBlock: thisBlock } = state;
     const prevBlock = doc.getPreviousSibling(thisBlock.key);
     if (!prevBlock) {
-      console.log('First block cannot be indented.');
+      console.log('The root block cannot be indented or outdented.');
       return state;
     }
-    // Append thisBlock to prevBlock's `nodes` List
-    const ensuingIndex = prevBlock.nodes ?
-      prevBlock.nodes.count() : 0;
-    return ensuingIndex ?
-      state.transform().moveNodeByKey(
-        thisBlock.key,
-        prevBlock.key,
-        ensuingIndex
-      ).apply() :
-      state;
+    const ensuingIndex = prevBlock.nodes ? prevBlock.nodes.count() : 0;
+    return ensuingIndex ? state.transform().moveNodeByKey(
+      thisBlock.key, prevBlock.key, ensuingIndex
+    ).apply() : state;
   }
 
   outdent(state) {
     const { document: doc, startBlock: thisBlock } = state;
-    const currentItem = doc.getParent(thisBlock.key);
-    console.log(currentItem);
-    return state;
+    const parent = doc.getParent(thisBlock.key);
+    const parentList = doc.getParent(parent.key);
+    if (!parentList) {
+      console.log('The root block cannot be indented or outdented.');
+      return state;
+    }
+    const index = parentList.nodes.indexOf(parent) + 1;
+    return state.transform().moveNodeByKey(
+      thisBlock.key, parentList.key, index
+    ).apply();
   }
 
   render() {
@@ -193,7 +301,5 @@ class Tree extends Component {
     );
   }
 }
-
-// Tree.propTypes = {};
 
 export default Tree;

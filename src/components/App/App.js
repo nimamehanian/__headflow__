@@ -1,4 +1,5 @@
 import React, { Component } from 'react';
+import PropTypes from 'prop-types';
 // import range from 'lodash/range';
 import Header from '../Header';
 import Tree from '../Tree';
@@ -31,9 +32,9 @@ class App extends Component {
   }
 }
 
-// App.propTypes = {
-//   user: PropTypes.objectOf(PropTypes.any).isRequired,
-// };
+App.propTypes = {
+  user: PropTypes.objectOf(PropTypes.any).isRequired,
+};
 
 export default App;
 
