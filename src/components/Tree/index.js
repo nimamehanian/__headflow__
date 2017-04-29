@@ -5,8 +5,8 @@ import {
   Raw,
   setKeyGenerator
 } from 'slate';
-import keyGen from '../../utils/keyGen';
 import schema from './schema';
+import keyGen from '../../utils/keyGen';
 
 setKeyGenerator(keyGen);
 
@@ -75,7 +75,6 @@ const initialState = Raw.deserialize({
   ],
 }, { terse: true });
 
-// COMPONENT
 class Tree extends Component {
   constructor(props) {
     super(props);
@@ -92,6 +91,10 @@ class Tree extends Component {
     this.outdent = this.outdent.bind(this);
     this.collapse = this.collapse.bind(this);
     this.expand = this.expand.bind(this);
+  }
+
+  componentDidMount() {
+    this.editor.focus();
   }
 
   onChange(editorState) {
@@ -168,7 +171,6 @@ class Tree extends Component {
 
     // ⌘+↵ = Toggle strikethrough (i.e., complete item)
     if (data.isMeta && data.key === 'enter') {
-      // TODO Grey out children of completed node too
       event.preventDefault();
       const markType = 'Strikethrough';
       const transform = state.transform();
@@ -229,12 +231,12 @@ class Tree extends Component {
     const parent = doc.getParent(thisBlock.key);
     const prevBlock = doc.getPreviousSibling(thisBlock.key);
     if (!prevBlock) {
-      console.log('Cannot move block up; already at top of list.');
+      // console.log('Cannot move block up; already at top of list.');
       return state;
     }
     const parentList = doc.getParent(prevBlock.key);
     if (parent.nodes.get(1) === thisBlock && parentList !== doc) {
-      console.log('Cannot move block out of its context.');
+      // console.log('Cannot move block out of its context.');
       return state;
     }
     const index = parentList.nodes.indexOf(prevBlock);
@@ -249,7 +251,7 @@ class Tree extends Component {
     const nextBlock = doc.getNextSibling(thisBlock.key);
 
     if (parent.nodes.last() === thisBlock) {
-      console.log('Cannot move block out of its context.');
+      // console.log('Cannot move block out of its context.');
       return state;
     }
 
@@ -263,7 +265,7 @@ class Tree extends Component {
     const { document: doc, startBlock: thisBlock } = state;
     const prevBlock = doc.getPreviousSibling(thisBlock.key);
     if (!prevBlock) {
-      console.log('The root block cannot be indented or outdented.');
+      // console.log('The root block cannot be indented or outdented.');
       return state;
     }
     const ensuingIndex = prevBlock.nodes ? prevBlock.nodes.count() : 0;
@@ -277,7 +279,7 @@ class Tree extends Component {
     const parent = doc.getParent(thisBlock.key);
     const parentList = doc.getParent(parent.key);
     if (!parentList) {
-      console.log('The root block cannot be indented or outdented.');
+      // console.log('The root block cannot be indented or outdented.');
       return state;
     }
     const index = parentList.nodes.indexOf(parent) + 1;
@@ -305,6 +307,7 @@ class Tree extends Component {
             schema={this.state.schema}
             onChange={this.onChange}
             onKeyDown={this.onKeyDown}
+            ref={(editor) => { this.editor = editor; }}
           />
         </div>
       </div>
