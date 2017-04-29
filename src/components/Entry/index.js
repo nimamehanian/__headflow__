@@ -8,6 +8,7 @@ class Entry extends Component {
   }
 
   render() {
+    // console.log('Entry attrs:', this.props.attributes);
     const entryClasses = classnames({
       entry: true,
       // hide: !blockData.get('isVisible'),

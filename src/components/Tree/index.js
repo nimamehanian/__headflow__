@@ -90,6 +90,8 @@ class Tree extends Component {
     this.moveDown = this.moveDown.bind(this);
     this.indent = this.indent.bind(this);
     this.outdent = this.outdent.bind(this);
+    this.collapse = this.collapse.bind(this);
+    this.expand = this.expand.bind(this);
   }
 
   onChange(editorState) {
@@ -98,13 +100,13 @@ class Tree extends Component {
 
   onKeyDown(event, data, state) {
     // ↵ = New block
-    if (data.key === 'enter') {
+    if (!data.isShift && !data.isMeta && data.key === 'enter') {
       event.preventDefault();
       return this.onEnter(state);
     }
 
     // ⇧⌘+↵ = Add note
-    if (data.isShift && data.isMeta && data.key === 'enter') {
+    if (data.isShift && data.key === 'enter') {
       event.preventDefault();
       console.log('ADD NOTE');
       return state;
@@ -135,17 +137,15 @@ class Tree extends Component {
     }
 
     // ⌘+↑ = Collapse
-    if (data.isMeta && data.key === 'up') {
+    if (!data.isShift && data.isMeta && data.key === 'up') {
       event.preventDefault();
-      console.log('COLLAPSE');
-      return state;
+      return this.collapse(state);
     }
 
     // ⌘+↓ = Expand
-    if (data.isMeta && data.key === 'down') {
+    if (!data.isShift && data.isMeta && data.key === 'down') {
       event.preventDefault();
-      console.log('EXPAND');
-      return state;
+      return this.expand(state);
     }
 
     // ⌘+B = Toggle embolden
@@ -284,6 +284,16 @@ class Tree extends Component {
     return state.transform().moveNodeByKey(
       thisBlock.key, parentList.key, index
     ).apply();
+  }
+
+  collapse(state) {
+    console.log('COLLAPSE');
+    return state;
+  }
+
+  expand(state) {
+    console.log('EXPAND');
+    return state;
   }
 
   render() {
