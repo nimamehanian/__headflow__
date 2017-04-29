@@ -8,7 +8,6 @@ class Entry extends Component {
   }
 
   render() {
-    // console.log('Entry attrs:', this.props.attributes);
     const entryClasses = classnames({
       entry: true,
       // hide: !blockData.get('isVisible'),
@@ -16,7 +15,6 @@ class Entry extends Component {
 
     return (
       <div className={entryClasses} {...this.props.attributes}>
-        <span className="bullet" contentEditable={false}>•</span>
         {this.props.children}
       </div>
     );
