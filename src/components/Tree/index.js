@@ -1,4 +1,6 @@
 import React, { Component } from 'react';
+import deepEqual from 'deep-equal';
+import debounce from 'lodash/debounce';
 import {
   Editor,
   Block,
@@ -83,6 +85,14 @@ class Tree extends Component {
       schema,
     };
     this.onChange = this.onChange.bind(this);
+    this.checkWhetherDataChanged = debounce((existingState, incomingState) => {
+      const areStatesEqual = deepEqual(existingState, incomingState);
+      // Save only when data in editorState changes
+      if (!areStatesEqual) {
+        this.syncWithDataStore(incomingState);
+      }
+    }, 2000);
+    this.syncWithDataStore = this.syncWithDataStore.bind(this);
     this.onKeyDown = this.onKeyDown.bind(this);
     this.onEnter = this.onEnter.bind(this);
     this.moveUp = this.moveUp.bind(this);
@@ -99,6 +109,9 @@ class Tree extends Component {
 
   onChange(editorState) {
     this.setState({ editorState });
+    const existingState = Raw.serialize(this.state.editorState, { terse: true });
+    const incomingState = Raw.serialize(editorState, { terse: true });
+    this.checkWhetherDataChanged(existingState, incomingState);
   }
 
   onKeyDown(event, data, state) {
@@ -108,10 +121,17 @@ class Tree extends Component {
       return this.onEnter(state);
     }
 
-    // ⇧⌘+↵ = Add note
-    if (data.isShift && data.key === 'enter') {
+    // ⇧+↵ = Add note
+    if (data.isShift && !data.isMeta && data.key === 'enter') {
       event.preventDefault();
       console.log('ADD NOTE');
+      return state.transform().apply();
+    }
+
+    // ⇧⌘+↵ = NOT_DESIGNATED
+    if (data.isShift && data.isMeta && data.key === 'enter') {
+      event.preventDefault();
+      console.log('⇧⌘+↵ = NOT_DESIGNATED');
       return state.transform().apply();
     }
 
@@ -170,7 +190,7 @@ class Tree extends Component {
     }
 
     // ⌘+↵ = Toggle strikethrough (i.e., complete item)
-    if (data.isMeta && data.key === 'enter') {
+    if (!data.isShift && data.isMeta && data.key === 'enter') {
       event.preventDefault();
       const markType = 'Strikethrough';
       const transform = state.transform();
@@ -178,9 +198,7 @@ class Tree extends Component {
       const length = state.startText.length;
       if (!length) { return state; }
       const isStriked = state.startText.characters
-        .first().get('marks')
-        .map(mark => mark.get('type'))
-        .contains('Strikethrough');
+        .first().get('marks').map(mark => mark.get('type')).contains(markType);
 
       // const fadeChildren = (xform, nodes) => {
       //   const transformation = nodes.reduce((tr, child) => {
@@ -214,9 +232,11 @@ class Tree extends Component {
     const { document: doc, startBlock: thisBlock } = state;
     // Split block if caret is not at end of line
     if (!state.selection.isAtEndOf(thisBlock.nodes.get(0))) {
-      return state.transform().splitBlock().apply();
+      return state.transform().splitBlock()
+        .collapseToEndOfPreviousText()
+        .collapseToEndOfNextText()
+        .apply();
     }
-
     // Create block as child, if thisBlock already has children
     if (
       thisBlock.nodes &&
@@ -232,16 +252,21 @@ class Tree extends Component {
     if (!thisBlock.nodes.get(0).text.length && doc.nodes.count() === 1) {
       return state.transform().apply();
     }
-    // Do not allow creation of multiple contiguous empty blocks
+    // Prevent multiple contiguous empty blocks
     if (!thisBlock.nodes.get(0).text.length) {
       // Do nothing
-      // return state;
+      // return state.transform().apply();
       // Or
       // Delete empty block
       return state.transform().removeNodeByKey(thisBlock.key).apply();
     }
     // Create block at same depth
     return state.transform().insertBlock(Block.create({ type: 'entry' })).apply();
+  }
+
+  syncWithDataStore(state) {
+    console.log('syncWithDataStore', state);
+    // this.props.save(this.props.userId, state);
   }
 
   moveUp(state) {
