@@ -112,7 +112,7 @@ class Tree extends Component {
     if (data.isShift && data.key === 'enter') {
       event.preventDefault();
       console.log('ADD NOTE');
-      return state;
+      return state.transform().apply();
     }
 
     // ^⌘+↑ = Move block up
@@ -176,15 +176,28 @@ class Tree extends Component {
       const transform = state.transform();
       const key = state.startText.key;
       const length = state.startText.length;
+      if (!length) { return state; }
       const isStriked = state.startText.characters
         .first().get('marks')
         .map(mark => mark.get('type'))
         .contains('Strikethrough');
 
+      // const fadeChildren = (xform, nodes) => {
+      //   const transformation = nodes.reduce((tr, child) => {
+      //     return child.kind === 'text' ?
+      //       xform.addMarkByKey(child.key, 0, child.length, 'Fade') :
+      //       fadeChildren(xform, child.nodes);
+      //   }, xform);
+      //   return nodes ? fadeChildren(transformation, nodes) : transformation;
+      // };
+
       return isStriked ?
         transform.removeMarkByKey(key, 0, length, markType).apply() :
-        transform.addMarkByKey(key, 0, length, markType)
-          .collapseToEndOfNextBlock().apply();
+        transform
+          .addMarkByKey(key, 0, length, markType)
+          // .call(fadeChildren, state.startBlock.nodes)
+          .collapseToEndOf(state.document.getNextText(key))
+          .apply();
     }
 
     // ⌘+K = Toggle monospace
@@ -199,6 +212,11 @@ class Tree extends Component {
 
   onEnter(state) {
     const { document: doc, startBlock: thisBlock } = state;
+    // Split block if caret is not at end of line
+    if (!state.selection.isAtEndOf(thisBlock.nodes.get(0))) {
+      return state.transform().splitBlock().apply();
+    }
+
     // Create block as child, if thisBlock already has children
     if (
       thisBlock.nodes &&
@@ -212,7 +230,7 @@ class Tree extends Component {
     }
     // Do not allow deletion of root block if it is empty
     if (!thisBlock.nodes.get(0).text.length && doc.nodes.count() === 1) {
-      return state;
+      return state.transform().apply();
     }
     // Do not allow creation of multiple contiguous empty blocks
     if (!thisBlock.nodes.get(0).text.length) {
@@ -232,12 +250,12 @@ class Tree extends Component {
     const prevBlock = doc.getPreviousSibling(thisBlock.key);
     if (!prevBlock) {
       // console.log('Cannot move block up; already at top of list.');
-      return state;
+      return state.transform().apply();
     }
     const parentList = doc.getParent(prevBlock.key);
     if (parent.nodes.get(1) === thisBlock && parentList !== doc) {
       // console.log('Cannot move block out of its context.');
-      return state;
+      return state.transform().apply();
     }
     const index = parentList.nodes.indexOf(prevBlock);
     return state.transform().moveNodeByKey(
@@ -252,7 +270,7 @@ class Tree extends Component {
 
     if (parent.nodes.last() === thisBlock) {
       // console.log('Cannot move block out of its context.');
-      return state;
+      return state.transform().apply();
     }
 
     const index = parent.nodes.indexOf(nextBlock);
@@ -266,12 +284,12 @@ class Tree extends Component {
     const prevBlock = doc.getPreviousSibling(thisBlock.key);
     if (!prevBlock) {
       // console.log('The root block cannot be indented or outdented.');
-      return state;
+      return state.transform().apply();
     }
     const ensuingIndex = prevBlock.nodes ? prevBlock.nodes.count() : 0;
     return ensuingIndex ? state.transform().moveNodeByKey(
       thisBlock.key, prevBlock.key, ensuingIndex
-    ).apply() : state;
+    ).apply() : state.transform().apply();
   }
 
   outdent(state) {
@@ -280,7 +298,7 @@ class Tree extends Component {
     const parentList = doc.getParent(parent.key);
     if (!parentList) {
       // console.log('The root block cannot be indented or outdented.');
-      return state;
+      return state.transform().apply();
     }
     const index = parentList.nodes.indexOf(parent) + 1;
     return state.transform().moveNodeByKey(
@@ -290,12 +308,12 @@ class Tree extends Component {
 
   collapse(state) {
     console.log('COLLAPSE');
-    return state;
+    return state.transform().apply();
   }
 
   expand(state) {
     console.log('EXPAND');
-    return state;
+    return state.transform().apply();
   }
 
   render() {
