@@ -103,10 +103,6 @@ class Tree extends Component {
     this.expand = this.expand.bind(this);
   }
 
-  componentDidMount() {
-    this.editor.focus();
-  }
-
   onChange(editorState) {
     this.setState({ editorState });
     const existingState = Raw.serialize(this.state.editorState, { terse: true });
@@ -115,6 +111,7 @@ class Tree extends Component {
   }
 
   onKeyDown(event, data, state) {
+    console.log(data);
     // ↵ = New block
     if (!data.isShift && !data.isMeta && data.key === 'enter') {
       event.preventDefault();
@@ -230,18 +227,11 @@ class Tree extends Component {
 
   onEnter(state) {
     const { document: doc, startBlock: thisBlock } = state;
-    // Split block if caret is not at end of line
-    if (!state.selection.isAtEndOf(thisBlock.nodes.get(0))) {
-      return state.transform().splitBlock()
-        .collapseToEndOfPreviousText()
-        .collapseToEndOfNextText()
-        .apply();
-    }
-    // Create block as child, if thisBlock already has children
+    // if block has children and caret is at EOL, make block as child
     if (
       thisBlock.nodes &&
       thisBlock.nodes.count() > 1 &&
-      thisBlock.nodes.get(1).text.length
+      state.selection.isAtEndOf(thisBlock.nodes.get(0))
     ) {
       const newBlock = Block.create({ type: 'entry' });
       return state.transform().insertNodeByKey(
@@ -250,18 +240,11 @@ class Tree extends Component {
     }
     // Do not allow deletion of root block if it is empty
     if (!thisBlock.nodes.get(0).text.length && doc.nodes.count() === 1) {
+      console.log('Cannot delete root block.');
       return state.transform().apply();
     }
-    // Prevent multiple contiguous empty blocks
-    if (!thisBlock.nodes.get(0).text.length) {
-      // Do nothing
-      // return state.transform().apply();
-      // Or
-      // Delete empty block
-      return state.transform().removeNodeByKey(thisBlock.key).apply();
-    }
     // Create block at same depth
-    return state.transform().insertBlock(Block.create({ type: 'entry' })).apply();
+    return state.transform().splitBlock().apply();
   }
 
   syncWithDataStore(state) {
@@ -308,8 +291,12 @@ class Tree extends Component {
     const { document: doc, startBlock: thisBlock } = state;
     const prevBlock = doc.getPreviousSibling(thisBlock.key);
     if (!prevBlock) {
-      // console.log('The root block cannot be indented or outdented.');
+      console.log('The root block cannot be indented or outdented.');
       return state.transform().apply();
+    }
+    if (!prevBlock.text) {
+      console.log('Cannot indent block when its parent is empty.');
+      return state;
     }
     const ensuingIndex = prevBlock.nodes ? prevBlock.nodes.count() : 0;
     return ensuingIndex ? state.transform().moveNodeByKey(
@@ -346,11 +333,11 @@ class Tree extends Component {
       <div className="tree-container">
         <div className="tree">
           <Editor
+            autoFocus
             state={this.state.editorState}
             schema={this.state.schema}
             onChange={this.onChange}
             onKeyDown={this.onKeyDown}
-            ref={(editor) => { this.editor = editor; }}
           />
         </div>
       </div>

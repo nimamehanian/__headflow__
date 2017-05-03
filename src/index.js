@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
 // import PropTypes from 'prop-types';
+import { genKey } from 'draft-js';
 import { render } from 'react-dom';
 import { createStore, combineReducers, applyMiddleware } from 'redux';
 import { Provider } from 'react-redux';
@@ -7,7 +8,7 @@ import thunk from 'redux-thunk';
 import { Route, Redirect } from 'react-router-dom';
 import { ConnectedRouter, routerMiddleware, routerReducer } from 'react-router-redux';
 import createHistory from 'history/createBrowserHistory';
-import { genKey } from 'draft-js';
+
 import App from './components/App';
 import appReducer from './components/App/reducer';
 import Login from './components/Login';
