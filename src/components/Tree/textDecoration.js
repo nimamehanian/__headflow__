@@ -12,8 +12,10 @@ export const Underline = props =>
 export const Strikethrough = props =>
   <span className="strikethrough">{props.children}</span>;
 
+export const Fade = props =>
+  <span className="fade">{props.children}</span>;
+
 export const Code = props =>
   <div className="entry" {...props.attributes}>
-    <span className="bullet" contentEditable={false}>•</span>
     <code>{props.children}</code>
   </div>;

@@ -4,6 +4,7 @@ import {
   Italicize,
   Underline,
   Strikethrough,
+  Fade,
   Code
 } from './textDecoration';
 import Entry from '../Entry';
@@ -14,6 +15,7 @@ const schema = {
     Italicize,
     Underline,
     Strikethrough,
+    Fade,
   },
   nodes: {
     code: Code,
