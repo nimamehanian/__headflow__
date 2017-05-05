@@ -4,6 +4,7 @@ import debounce from 'lodash/debounce';
 import {
   Editor,
   Block,
+  Data,
   Raw,
   setKeyGenerator
 } from 'slate';
@@ -12,79 +13,20 @@ import keyGen from '../../utils/keyGen';
 
 setKeyGenerator(keyGen);
 
-const initialState = Raw.deserialize({
-  nodes: [
-    {
-      kind: 'block',
-      type: 'entry',
-      nodes: [
-        {
-          kind: 'text',
-          text: 'A line of text in a paragraph.',
-        },
-      ],
-    },
-    {
-      kind: 'block',
-      type: 'entry',
-      nodes: [
-        {
-          kind: 'text',
-          text: 'Rich kid asshole paint me as a villain',
-        },
-      ],
-    },
-    {
-      kind: 'block',
-      type: 'entry',
-      nodes: [
-        {
-          kind: 'text',
-          text: 'Line 3:',
-        },
-      ],
-    },
-    {
-      kind: 'block',
-      type: 'entry',
-      nodes: [
-        {
-          kind: 'text',
-          text: 'Line 4:',
-        },
-      ],
-    },
-    {
-      kind: 'block',
-      type: 'entry',
-      nodes: [
-        {
-          kind: 'text',
-          text: 'Line 5:',
-        },
-      ],
-    },
-    {
-      kind: 'block',
-      type: 'entry',
-      nodes: [
-        {
-          kind: 'text',
-          text: 'Line 6:',
-        },
-      ],
-    },
-  ],
-}, { terse: true });
+const initialState = Raw.deserialize({ nodes: [
+  {
+    kind: 'block',
+    type: 'entry',
+    data: Data.create({ isExpanded: true, isVisible: true }),
+    nodes: [{ kind: 'text', text: 'Loading...' }],
+  },
+] }, { terse: true });
 
 class Tree extends Component {
   constructor(props) {
     super(props);
-    this.state = {
-      editorState: initialState,
-      schema,
-    };
-    this.onChange = this.onChange.bind(this);
+    this.state = { editorState: initialState, schema };
+    // TODO Update to onDocumentChange(document, state) prop on Editor
     this.checkWhetherDataChanged = debounce((existingState, incomingState) => {
       const areStatesEqual = deepEqual(existingState, incomingState);
       // Save only when data in editorState changes
@@ -93,25 +35,29 @@ class Tree extends Component {
       }
     }, 2000);
     this.syncWithDataStore = this.syncWithDataStore.bind(this);
+    this.createBlock = this.createBlock.bind(this);
+    this.onChange = this.onChange.bind(this);
     this.onKeyDown = this.onKeyDown.bind(this);
     this.onEnter = this.onEnter.bind(this);
     this.moveUp = this.moveUp.bind(this);
     this.moveDown = this.moveDown.bind(this);
     this.indent = this.indent.bind(this);
     this.outdent = this.outdent.bind(this);
-    this.collapse = this.collapse.bind(this);
-    this.expand = this.expand.bind(this);
+    this.toggleExpand = this.toggleExpand.bind(this);
+  }
+
+  componentDidMount() {
+    this.editor.focus();
   }
 
   onChange(editorState) {
-    this.setState({ editorState });
-    const existingState = Raw.serialize(this.state.editorState, { terse: true });
+    this.props.update(editorState);
+    const existingState = Raw.serialize(this.props.editorState, { terse: true });
     const incomingState = Raw.serialize(editorState, { terse: true });
     this.checkWhetherDataChanged(existingState, incomingState);
   }
 
   onKeyDown(event, data, state) {
-    console.log(data);
     // ↵ = New block
     if (!data.isShift && !data.isMeta && data.key === 'enter') {
       event.preventDefault();
@@ -159,13 +105,13 @@ class Tree extends Component {
     // ⌘+↑ = Collapse
     if (!data.isShift && data.isMeta && data.key === 'up') {
       event.preventDefault();
-      return this.collapse(state);
+      return this.toggleExpand(state, false);
     }
 
     // ⌘+↓ = Expand
     if (!data.isShift && data.isMeta && data.key === 'down') {
       event.preventDefault();
-      return this.expand(state);
+      return this.toggleExpand(state, true);
     }
 
     // ⌘+B = Toggle embolden
@@ -222,34 +168,102 @@ class Tree extends Component {
       return state.transform().setBlock(isCode ? 'entry' : 'code').apply();
     }
 
+    // ⌘+⌫ = Delete line
+    // if (data.isMeta && data.key === 'backspace') {
+    //   // const { selection } = state;
+    //   console.log('DELETE_LINE');
+    //   const firstNode = state.document.nodes.get(0).nodes.get(0);
+    //   // TODO #throwawayCode
+    //   if (state.startText === firstNode) {
+    //     console.log('Cannot delete root block');
+    //     return state;
+    //   }
+    //   const charsToLeft = state.selection.startOffset;
+    //   const yolo = state.transform()
+    //     .deleteBackward(charsToLeft)
+    //     // .collapseToEndOfPreviousBlock()
+    //     // .collapseToEndOfNextBlock()
+    //     // .collapseToEnd()
+    //     // .insertText('🥑')
+    //     // Of(state.startText)
+    //     .apply();
+    //   // console.log(yolo);
+    //   return yolo;
+    // }
+
+    // ⌘+A ⌫ = Delete all
+    if (
+      data.key === 'backspace' &&
+      state.selection.hasEdgeAtStartOf(state.document) &&
+      state.selection.hasEdgeAtEndOf(state.document)
+    ) {
+      console.log('Phew! We doubt you meant to delete the whole document.');
+      return state;
+    }
+
+    // ⌫ = Delete one character
+    if (!data.isMeta && data.key === 'backspace') {
+      event.preventDefault();
+      const { document: doc, startBlock: thisBlock, selection } = state;
+      const parent = doc.getParent(thisBlock.key);
+      const cursorAtStart = selection.isAtStartOf(thisBlock.nodes.get(0));
+      const hasText = thisBlock.nodes.get(0).text.length;
+      const isFirstChild = parent.nodes.get(1) === thisBlock;
+      const prevBlock = doc.getPreviousSibling(thisBlock.key);
+      const prevBlockHasChildren = prevBlock &&
+        prevBlock.kind === 'block' && prevBlock.nodes.count() > 1;
+      if (cursorAtStart && hasText &&
+        (isFirstChild || prevBlockHasChildren)
+      ) { return state; }
+    }
+
     return null;
   }
 
   onEnter(state) {
+    const { selection, startBlock: thisBlock } = state;
+    const { nodes } = thisBlock;
+    const hasChildren = nodes && nodes.count() > 1;
+    const cursorAtEnd = selection.isAtEndOf(nodes.get(0));
+
+    // If cursor is NOT at EOL, split block normally
+    if (!cursorAtEnd) {
+      return state.transform().splitBlock().apply();
+    }
+
+    // If block is collapsed, and cursor is at EOL, create block as sibling
+    if (cursorAtEnd && hasChildren && !thisBlock.data.get('isExpanded')) {
+      return this.createBlock(state);
+    }
+
+    // if block is expanded, and cursor is at EOL, create block as child
+    if (cursorAtEnd && hasChildren && thisBlock.data.get('isExpanded')) {
+      return this.createBlock(state, true);
+    }
+
+    // Create block as sibling
+    return this.createBlock(state);
+  }
+
+  createBlock(state, asChild) {
     const { document: doc, startBlock: thisBlock } = state;
-    // if block has children and caret is at EOL, make block as child
-    if (
-      thisBlock.nodes &&
-      thisBlock.nodes.count() > 1 &&
-      state.selection.isAtEndOf(thisBlock.nodes.get(0))
-    ) {
-      const newBlock = Block.create({ type: 'entry' });
-      return state.transform().insertNodeByKey(
-        thisBlock.key, 1, newBlock
-      ).collapseToStartOf(newBlock).apply();
-    }
-    // Do not allow deletion of root block if it is empty
-    if (!thisBlock.nodes.get(0).text.length && doc.nodes.count() === 1) {
-      console.log('Cannot delete root block.');
-      return state.transform().apply();
-    }
-    // Create block at same depth
-    return state.transform().splitBlock().apply();
+    const newBlock = Block.create({ type: 'entry' });
+    const parent = doc.getParent(thisBlock.key);
+    const anchor = asChild ?
+      { block: thisBlock, index: 1 } :
+      { block: parent, index: parent.nodes.indexOf(thisBlock) + 1 };
+    return state.transform()
+    .insertNodeByKey(anchor.block.key, anchor.index, newBlock)
+      .setNodeByKey(newBlock.key, { data: {
+        isExpanded: true,
+        isVisible: true,
+      } })
+      .collapseToEndOf(newBlock)
+      .apply();
   }
 
   syncWithDataStore(state) {
-    console.log('syncWithDataStore', state);
-    // this.props.save(this.props.userId, state);
+    this.props.save(this.props.userId, state);
   }
 
   moveUp(state) {
@@ -258,12 +272,12 @@ class Tree extends Component {
     const prevBlock = doc.getPreviousSibling(thisBlock.key);
     if (!prevBlock) {
       // console.log('Cannot move block up; already at top of list.');
-      return state.transform().apply();
+      return state;
     }
     const parentList = doc.getParent(prevBlock.key);
     if (parent.nodes.get(1) === thisBlock && parentList !== doc) {
       // console.log('Cannot move block out of its context.');
-      return state.transform().apply();
+      return state;
     }
     const index = parentList.nodes.indexOf(prevBlock);
     return state.transform().moveNodeByKey(
@@ -278,7 +292,7 @@ class Tree extends Component {
 
     if (parent.nodes.last() === thisBlock) {
       // console.log('Cannot move block out of its context.');
-      return state.transform().apply();
+      return state;
     }
 
     const index = parent.nodes.indexOf(nextBlock);
@@ -291,17 +305,17 @@ class Tree extends Component {
     const { document: doc, startBlock: thisBlock } = state;
     const prevBlock = doc.getPreviousSibling(thisBlock.key);
     if (!prevBlock) {
-      console.log('The root block cannot be indented or outdented.');
-      return state.transform().apply();
+      // console.log('The root block cannot be indented or outdented.');
+      return state;
     }
     if (!prevBlock.text) {
-      console.log('Cannot indent block when its parent is empty.');
+      // console.log('Cannot indent block when block above is empty.');
       return state;
     }
     const ensuingIndex = prevBlock.nodes ? prevBlock.nodes.count() : 0;
     return ensuingIndex ? state.transform().moveNodeByKey(
       thisBlock.key, prevBlock.key, ensuingIndex
-    ).apply() : state.transform().apply();
+    ).apply() : state;
   }
 
   outdent(state) {
@@ -310,7 +324,7 @@ class Tree extends Component {
     const parentList = doc.getParent(parent.key);
     if (!parentList) {
       // console.log('The root block cannot be indented or outdented.');
-      return state.transform().apply();
+      return state;
     }
     const index = parentList.nodes.indexOf(parent) + 1;
     return state.transform().moveNodeByKey(
@@ -318,14 +332,18 @@ class Tree extends Component {
     ).apply();
   }
 
-  collapse(state) {
-    console.log('COLLAPSE');
-    return state.transform().apply();
-  }
-
-  expand(state) {
-    console.log('EXPAND');
-    return state.transform().apply();
+  toggleExpand(state, isExpanding) {
+    const { startBlock: thisBlock } = state;
+    return thisBlock.nodes.count() > 1 ?
+      thisBlock.nodes.reduce((tr, node) => {
+        if (node.kind === 'text') { return tr; }
+        return tr.setNodeByKey(node.key, { data: {
+          isExpanded: node.data.get('isExpanded', isExpanding),
+          isVisible: isExpanding,
+        } });
+      }, state.transform())
+      .setNodeByKey(thisBlock.key, { data: { isExpanded: isExpanding } })
+      .apply() : state;
   }
 
   render() {
@@ -333,11 +351,11 @@ class Tree extends Component {
       <div className="tree-container">
         <div className="tree">
           <Editor
-            autoFocus
-            state={this.state.editorState}
+            state={this.props.editorState}
             schema={this.state.schema}
             onChange={this.onChange}
             onKeyDown={this.onKeyDown}
+            ref={(editor) => { this.editor = editor; }}
           />
         </div>
       </div>

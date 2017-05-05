@@ -1,6 +1,5 @@
 import React, { Component } from 'react';
 // import PropTypes from 'prop-types';
-import { genKey } from 'draft-js';
 import { render } from 'react-dom';
 import { createStore, combineReducers, applyMiddleware } from 'redux';
 import { Provider } from 'react-redux';
@@ -48,23 +47,8 @@ class Root extends Component {
         userRef.once('value', (data) => {
           if (!data.val()) {
             // user does not exist, so create entry
-            const initialUserData = {
-              blocks: [
-                {
-                  data: {
-                    hasChildren: false,
-                    isExpanded: true,
-                    isVisible: true,
-                    note: '',
-                    parentKey: '',
-                  },
-                  depth: 0,
-                  key: genKey(),
-                  text: `Hello, ${user.displayName || user.email}! Let's get started :)`,
-                  type: 'unordered-list-item',
-                },
-              ],
-            };
+            // TODO Create initialUserData
+            const initialUserData = {};
             userRef.set({
               email: user.email,
               displayName: user.displayName || null,

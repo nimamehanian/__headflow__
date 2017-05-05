@@ -8,14 +8,23 @@ class Entry extends Component {
   }
 
   render() {
-    const entryClasses = classnames({
-      entry: true,
-      // hide: !blockData.get('isVisible'),
-    });
-
+    const entryClasses = classnames({ entry: true });
+    const hasChildren = this.props.node.nodes.count() > 1;
+    const isExpanded = this.props.node.data.get('isExpanded', true);
+    const isVisible = this.props.node.data.get('isVisible', true);
     return (
-      <div className={entryClasses} {...this.props.attributes}>
-        {this.props.children}
+      <div
+        className={entryClasses}
+        {...this.props.attributes}
+        style={{ display: `${isVisible ? 'block' : 'none'}` }}
+      >
+        {hasChildren ? <span className="line" contentEditable={false} /> : null}
+        {hasChildren ?
+          <span className="collapse-expand-btn" contentEditable={false}>
+            <i className={`ion-${isExpanded ? 'minus' : 'plus'}-round`} />
+          </span> : null
+        }
+        <span className="entry-text">{this.props.children}</span>
       </div>
     );
   }

@@ -1,4 +1,4 @@
-import { EditorState, convertFromRaw } from 'draft-js';
+import { Raw } from 'slate';
 import {
   APP_LOAD_REQUEST,
   APP_LOAD_RESOLVE,
@@ -11,18 +11,18 @@ import { DB } from '../../firebase';
 
 // GET
 const loadRequest = () => ({ type: APP_LOAD_REQUEST });
-const loadResolve = blocks => ({
+const loadResolve = nodes => ({
   type: APP_LOAD_RESOLVE,
-  editorState: EditorState.createWithContent(
-    convertFromRaw({ blocks, entityMap: {} })
-  ),
+  editorState: nodes,
 });
 // const loadFailure = () => ({ type: APP_LOAD_FAILURE });
 export const load = user => (
   (dispatch) => {
     dispatch(loadRequest());
-    DB.ref(`userData/${user.uid}/blocks`).once('value', (blocks) => {
-      dispatch(loadResolve(blocks.val()));
+    DB.ref(`userData/${user.uid}/`).once('value', (nodes) => {
+      dispatch(loadResolve(
+        Raw.deserialize(nodes.val(), { terse: true })
+      ));
     });
   }
 );
@@ -39,20 +39,3 @@ export const save = (uid, contentState) => (
       .catch(() => dispatch(saveFailure()));
   }
 );
-
-// const blocks = b.map(block => (
-//   new ContentBlock({
-//     characterList: List(),
-//     key: block.key,
-//     text: block.text,
-//     type: block.type,
-//     depth: block.depth,
-//     data: Map({
-//       hasChildren: block.data.hasChildren,
-//       isExpanded: block.data.isExpanded,
-//       isVisible: block.data.isVisible,
-//       note: block.data.note,
-//       parentKey: block.data.parentKey,
-//     }),
-//   })
-// ));

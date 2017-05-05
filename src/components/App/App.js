@@ -37,12 +37,3 @@ App.propTypes = {
 };
 
 export default App;
-
-/*
-<div className="line-numbers">
-  {range(1, this.props.editorState
-    .getCurrentContent().getBlockMap().count() + 1)
-    .map(num => <div className="num" key={`line_${num}`}>{num}</div>)
-  }
-</div>
-*/

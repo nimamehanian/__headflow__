@@ -1,9 +1,4 @@
-import { Map, List } from 'immutable';
-import {
-  ContentBlock,
-  EditorState,
-  convertFromRaw
-} from 'draft-js';
+import { Raw, Data } from 'slate';
 import {
   APP_LOAD_RESOLVE,
   APP_SAVE_REQUEST,
@@ -14,23 +9,14 @@ import {
 
 const initialState = {
   isSaving: false,
-  editorState: EditorState.createWithContent(convertFromRaw({
-    blocks: [new ContentBlock({
-      characterList: List(),
-      key: '',
-      text: 'Loading...',
-      type: 'unordered-list-item',
-      depth: 0,
-      data: Map({
-        hasChildren: false,
-        isExpanded: true,
-        isVisible: true,
-        note: '',
-        parentKey: '',
-      }),
-    })],
-    entityMap: {},
-  })),
+  editorState: Raw.deserialize({ nodes: [
+    {
+      kind: 'block',
+      type: 'entry',
+      data: Data.create({ isExpanded: true, isVisible: true }),
+      nodes: [{ kind: 'text', text: 'Loading...' }],
+    },
+  ] }, { terse: true }),
 };
 
 const appReducer = (state = initialState, action) => {
