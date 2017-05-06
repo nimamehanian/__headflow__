@@ -16,7 +16,7 @@ const initialState = {
       data: Data.create({ isExpanded: true, isVisible: true }),
       nodes: [{ kind: 'text', text: 'Loading...' }],
     },
-  ] }, { terse: true }),
+  ] }, { terse: true, normalize: false }),
 };
 
 const appReducer = (state = initialState, action) => {

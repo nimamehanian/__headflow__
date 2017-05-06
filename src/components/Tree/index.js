@@ -4,7 +4,7 @@ import debounce from 'lodash/debounce';
 import {
   Editor,
   Block,
-  Data,
+  // Data,
   Raw,
   setKeyGenerator
 } from 'slate';
@@ -13,19 +13,10 @@ import keyGen from '../../utils/keyGen';
 
 setKeyGenerator(keyGen);
 
-const initialState = Raw.deserialize({ nodes: [
-  {
-    kind: 'block',
-    type: 'entry',
-    data: Data.create({ isExpanded: true, isVisible: true }),
-    nodes: [{ kind: 'text', text: 'Loading...' }],
-  },
-] }, { terse: true });
-
 class Tree extends Component {
   constructor(props) {
     super(props);
-    this.state = { editorState: initialState, schema };
+    this.state = {};
     // TODO Update to onDocumentChange(document, state) prop on Editor
     this.checkWhetherDataChanged = debounce((existingState, incomingState) => {
       const areStatesEqual = deepEqual(existingState, incomingState);
@@ -112,6 +103,12 @@ class Tree extends Component {
     if (!data.isShift && data.isMeta && data.key === 'down') {
       event.preventDefault();
       return this.toggleExpand(state, true);
+    }
+
+    // ⌘+S = Nullify save
+    if (data.isMeta && data.key === 's') {
+      event.preventDefault();
+      return state;
     }
 
     // ⌘+B = Toggle embolden
@@ -352,7 +349,7 @@ class Tree extends Component {
         <div className="tree">
           <Editor
             state={this.props.editorState}
-            schema={this.state.schema}
+            schema={schema}
             onChange={this.onChange}
             onKeyDown={this.onKeyDown}
             ref={(editor) => { this.editor = editor; }}
