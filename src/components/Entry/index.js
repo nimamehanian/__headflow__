@@ -5,6 +5,23 @@ class Entry extends Component {
   constructor(props) {
     super(props);
     this.state = {};
+    this.handleClick = this.handleClick.bind(this);
+  }
+
+  handleClick() {
+    const { onChange } = this.props.editor;
+    const isExpanding = !this.props.node.data.get('isExpanded');
+    const newState = this.props.node.nodes.count() > 1 ?
+      this.props.node.nodes.reduce((tr, node) => {
+        if (node.kind === 'text') { return tr; }
+        return tr.setNodeByKey(node.key, { data: {
+          isExpanded: node.data.get('isExpanded', isExpanding),
+          isVisible: isExpanding,
+        } });
+      }, this.props.state.transform())
+      .setNodeByKey(this.props.node.key, { data: { isExpanded: isExpanding } })
+      .apply() : this.props.state;
+    return onChange(newState);
   }
 
   render() {
@@ -20,7 +37,7 @@ class Entry extends Component {
       >
         {hasChildren ? <span className="line" contentEditable={false} /> : null}
         {hasChildren ?
-          <span className="collapse-expand-btn" contentEditable={false}>
+          <span className="collapse-expand-btn" contentEditable={false} onClick={this.handleClick}>
             <i className={`ion-${isExpanded ? 'minus' : 'plus'}-round`} />
           </span> : null
         }
