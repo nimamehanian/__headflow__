@@ -21,7 +21,7 @@ export const load = user => (
     dispatch(loadRequest());
     DB.ref(`userData/${user.uid}/`).once('value', (nodes) => {
       dispatch(loadResolve(
-        Raw.deserialize(nodes.val(), { terse: true, normalize: false })
+        Raw.deserialize(nodes.val(), { terse: true })
       ));
     });
   }

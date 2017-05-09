@@ -4,7 +4,6 @@ import debounce from 'lodash/debounce';
 import {
   Editor,
   Block,
-  // Data,
   Raw,
   setKeyGenerator
 } from 'slate';
@@ -17,7 +16,6 @@ class Tree extends Component {
   constructor(props) {
     super(props);
     this.state = {};
-    // TODO Update to onDocumentChange(document, state) prop on Editor
     this.checkWhetherDataChanged = debounce((existingState, incomingState) => {
       const areStatesEqual = deepEqual(existingState, incomingState);
       // Save only when data in editorState changes
@@ -37,9 +35,9 @@ class Tree extends Component {
     this.toggleExpand = this.toggleExpand.bind(this);
   }
 
-  componentDidMount() {
-    this.editor.focus();
-  }
+  // componentDidMount() {
+  //   this.editor.focus();
+  // }
 
   onChange(editorState) {
     this.props.update(editorState);
@@ -175,6 +173,7 @@ class Tree extends Component {
     //     console.log('Cannot delete root block');
     //     return state;
     //   }
+    //   event.preventDefault();
     //   const charsToLeft = state.selection.startOffset;
     //   const yolo = state.transform()
     //     .deleteBackward(charsToLeft)
@@ -335,11 +334,14 @@ class Tree extends Component {
       thisBlock.nodes.reduce((tr, node) => {
         if (node.kind === 'text') { return tr; }
         return tr.setNodeByKey(node.key, { data: {
-          isExpanded: node.data.get('isExpanded', isExpanding),
+          isExpanded: node.data.get('isExpanded'),
           isVisible: isExpanding,
         } });
       }, state.transform())
-      .setNodeByKey(thisBlock.key, { data: { isExpanded: isExpanding } })
+      .setNodeByKey(thisBlock.key, { data: {
+        isExpanded: isExpanding,
+        isVisible: thisBlock.data.get('isVisible'),
+      } })
       .apply() : state;
   }
 

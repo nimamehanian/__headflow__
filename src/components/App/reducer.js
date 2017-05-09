@@ -1,4 +1,7 @@
-import { Raw, Data } from 'slate';
+import {
+  Raw,
+  Data
+} from 'slate';
 import {
   APP_LOAD_RESOLVE,
   APP_SAVE_REQUEST,
@@ -14,9 +17,12 @@ const initialState = {
       kind: 'block',
       type: 'entry',
       data: Data.create({ isExpanded: true, isVisible: true }),
-      nodes: [{ kind: 'text', text: 'Loading...' }],
+      nodes: [{
+        kind: 'text',
+        text: 'Loading...',
+      }],
     },
-  ] }, { terse: true, normalize: false }),
+  ] }, { terse: true }),
 };
 
 const appReducer = (state = initialState, action) => {
