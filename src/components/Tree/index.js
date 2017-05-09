@@ -350,6 +350,8 @@ class Tree extends Component {
       <div className="tree-container">
         <div className="tree">
           <Editor
+            autoCorrect={false}
+            spellCheck={false}
             state={this.props.editorState}
             schema={schema}
             onChange={this.onChange}
