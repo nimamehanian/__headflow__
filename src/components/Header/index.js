@@ -50,8 +50,9 @@ class Header extends Component {
             className="header-element avatar"
             onClick={this.toggleAvatarMenu}
           >
-            {this.props.username}
-            <i className="arrow-down ion-ios-arrow-down" />
+            <i className="ion-android-more-vertical" />
+            {/* {this.props.username} */}
+            {/* <i className="arrow-down ion-ios-arrow-down" /> */}
           </div>
         </div>
 

@@ -54,6 +54,7 @@ class Entry extends Component {
             <i onClick={e => this.handleClick(e, !isExpanded)} className={`ion-${isExpanded ? 'minus' : 'plus'}-round`} />
           </span> : null
         }
+        <span className="bullet" contentEditable={false}>•</span>
         <span className="entry-text">{this.props.children}</span>
       </div>
     );

@@ -30,17 +30,20 @@
     align-items center
     i.saving, i.saved
       height 48px
-      font-size 32px
-      padding 0px 8px
-      border-left 1px solid $evening
-      border-right 1px solid $evening
+      font-size 24px
+      width 44px
+      text-align center
+      border-left 1px solid rgba(25, 34, 49, 0.6)
+      border-right 1px solid rgba(25, 34, 49, 0.6)
       &.saving
         color $ivory
       &.saved
         color $leaf
     & .header-element
-      padding 0px 16px
       &.avatar
+        width 46px
+        height 48px
+        text-align center
         cursor pointer
         letter-spacing 0.6px
         font-family 'Lato Thin'
@@ -48,6 +51,9 @@
         padding-left 8px
         position relative
         top 2px
+      & .ion-android-more-vertical
+        color $cream
+        font-size 24px
   .menu
     cursor pointer
     z-index 10
