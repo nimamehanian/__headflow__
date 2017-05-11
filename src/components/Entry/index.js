@@ -1,18 +1,42 @@
 import React, { Component } from 'react';
 import classnames from 'classnames';
+import throttle from 'lodash/throttle';
 
 class Entry extends Component {
   constructor(props) {
     super(props);
     this.state = {};
     this.handleClick = this.handleClick.bind(this);
+    this.getDepth = this.getDepth.bind(this);
+    this.recalculateWidth = throttle(() => {
+      const xOffset = ((32 * this.getDepth()) + 4 + 16);
+      const width = window.innerWidth - xOffset - 4 - 8;
+      this.setState({ width });
+    }, 300);
+  }
+
+  componentDidMount() {
+    this.recalculateWidth();
+    if (window) {
+      window.addEventListener('resize', this.recalculateWidth);
+    }
+  }
+
+  componentWillUnmount() {
+    if (window) {
+      window.removeEventListener('resize', this.recalculateWidth);
+    }
+  }
+
+  getDepth() {
+    return this.props.editor.getState().document
+      .getDepth(this.props.node.key);
   }
 
   handleClick(event, isExpanding) {
     event.preventDefault();
     const syncedState = this.props.editor.getState()
-      .transform()
-      .collapseToStartOf(this.props.node)
+      .transform().collapseToStartOf(this.props.node)
       .blur()
       .apply();
     const thisBlock = syncedState.startBlock;
@@ -43,7 +67,10 @@ class Entry extends Component {
       <div
         className={entryClasses}
         {...this.props.attributes}
-        style={{ display: `${isVisible ? 'block' : 'none'}` }}
+        style={{
+          display: `${isVisible ? 'block' : 'none'}`,
+          width: this.state.width,
+        }}
       >
         {hasChildren ? <span className="line" contentEditable={false} /> : null}
         {hasChildren ?
@@ -51,7 +78,10 @@ class Entry extends Component {
             className="collapse-expand-btn"
             contentEditable={false}
           >
-            <i onClick={e => this.handleClick(e, !isExpanded)} className={`ion-${isExpanded ? 'minus' : 'plus'}-round`} />
+            <i
+              onClick={e => this.handleClick(e, !isExpanded)}
+              className={`ion-${isExpanded ? 'minus' : 'plus'}-round`}
+            />
           </span> : null
         }
         <span className="bullet" contentEditable={false}>•</span>
