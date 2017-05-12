@@ -83,6 +83,7 @@ class Entry extends Component {
             <i
               onClick={e => this.handleClick(e, !isExpanded)}
               className={`ion-${isExpanded ? 'minus' : 'plus'}-round`}
+              contentEditable={false}
             />
           </span> : null
         }
