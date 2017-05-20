@@ -1,21 +1,16 @@
 .entry
   position relative
   left 32px
+  // ~ Golden ratio:
   line-height 1.62
   .bullet
-    user-select none
     position absolute
-    left -18px
+    transform translate(-18px, 0px)
+    &:before
+      content '•'
   .line
     position absolute
-    background repeating-linear-gradient(
-      0deg,
-      #a9a9a9,
-      #a9a9a9 2px,
-      #f5f5f7 1px,
-      #f5f5f7 4px
-    )
-    opacity 0.5
+    background rgba(#a9a9a9, 0.3)
     transform translate(-14px, 18px)
     height calc(100% - 24px)
     width 1px
@@ -25,12 +20,11 @@
     left -42px
     color rgba(73, 78, 107, 0.7)
     i
-      position relative
-      top 1px
-      left 6px
-      font-size 16px
+      position absolute
+      transform translate(5px, -7.5px)
+      font-size 26px
       &:hover
-        color rgba(238, 182, 183, 0.7)
+        // color rgba(238, 182, 183, 0.7)
   .entry-text
     //
   .note
