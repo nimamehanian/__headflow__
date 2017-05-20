@@ -1,0 +1,37 @@
+{
+  "name": "Headflow",
+  "short_name": "Headflow",
+  "description": "Headflow",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "theme_color": "#4e5b68",
+  "background_color": "#f5f5f7",
+  "icons": [
+    {
+      "src": "./images/headflow.png",
+      "sizes": "48x48",
+      "type": "image/png"
+    },
+    {
+      "src": "./images/headflow-96.png",
+      "sizes": "96x96",
+      "type": "image/png"
+    },
+    {
+      "src": "./images/headflow-144.png",
+      "sizes": "144x144",
+      "type": "image/png"
+    },
+    {
+      "src": "./images/headflow-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "./images/headflow-256.png",
+      "sizes": "256x256",
+      "type": "image/png"
+    }
+  ]
+}
