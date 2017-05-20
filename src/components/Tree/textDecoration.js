@@ -15,7 +15,8 @@ export const Strikethrough = props =>
 export const Fade = props =>
   <span className="fade">{props.children}</span>;
 
-export const Code = props =>
+export const Code = props => (
   <div className="entry" {...props.attributes}>
     <code>{props.children}</code>
-  </div>;
+  </div>
+);
