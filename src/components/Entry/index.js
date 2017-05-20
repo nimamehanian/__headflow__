@@ -8,7 +8,7 @@ class Entry extends Component {
     this.state = {};
     this.handleClick = this.handleClick.bind(this);
     this.getDepth = this.getDepth.bind(this);
-    this.recalculateWidth = throttle(() => {
+    this.getWidth = throttle(() => {
       // xOffset = ((widthOfIndentation * entryDepth) + leftMargin + fromBulletToFirstChar)
       const xOffset = ((32 * this.getDepth()) + 4 + 16);
       // widthOfViewport - xOffset - rightMargin - rightPadding
@@ -18,15 +18,15 @@ class Entry extends Component {
   }
 
   componentDidMount() {
-    this.recalculateWidth();
+    this.getWidth();
     if (window) {
-      window.addEventListener('resize', this.recalculateWidth);
+      window.addEventListener('resize', this.getWidth);
     }
   }
 
   componentWillUnmount() {
     if (window) {
-      window.removeEventListener('resize', this.recalculateWidth);
+      window.removeEventListener('resize', this.getWidth);
     }
   }
 
@@ -37,23 +37,23 @@ class Entry extends Component {
 
   handleClick(event, isExpanding) {
     event.preventDefault();
+    event.stopPropagation();
     const syncedState = this.props.editor.getState()
-      .transform().collapseToStartOf(this.props.node)
+      .transform().collapseToStartOf(this.props.node.nodes.get(0))
       .blur()
       .apply();
     const thisBlock = syncedState.startBlock;
     if (syncedState.selection.isAtStartOf(thisBlock)) {
       this.props.editor.onChange(
-        thisBlock.nodes.reduce((tr, node) => {
-          if (node.kind === 'text') { return tr; }
-          return tr.setNodeByKey(node.key, { data: {
-            isExpanded: node.data.get('isExpanded'),
+        thisBlock.nodes.rest().reduce((tr, node) =>
+          tr.setNodeByKey(node.key, { data: {
+            ...node.data.toJS(),
             isVisible: isExpanding,
-          } });
-        }, syncedState.transform())
+          } })
+        , syncedState.transform())
         .setNodeByKey(thisBlock.key, { data: {
+          ...thisBlock.data.toJS(),
           isExpanded: isExpanding,
-          isVisible: thisBlock.data.get('isVisible'),
         } })
         .apply()
       );
@@ -74,21 +74,25 @@ class Entry extends Component {
           width: this.state.width,
         }}
       >
-        {hasChildren ? <span className="line" contentEditable={false} /> : null}
+        {(hasChildren && isExpanded) ? <span className="line" contentEditable={false} /> : null}
         {hasChildren ?
           <span
+            onClick={e => this.handleClick(e, !isExpanded)}
             className="collapse-expand-btn"
             contentEditable={false}
           >
             <i
-              onClick={e => this.handleClick(e, !isExpanded)}
-              className={`ion-${isExpanded ? 'minus' : 'plus'}-round`}
+              className={`ion-ios-${isExpanded ? 'minus' : 'plus'}-empty`}
               contentEditable={false}
             />
           </span> : null
         }
-        <span className="bullet" contentEditable={false}>•</span>
-        <span className="entry-text">{this.props.children}</span>
+        <span className="bullet" contentEditable={false} />
+        <span
+          className="entry-text"
+        >
+          {this.props.children}
+        </span>
       </div>
     );
   }
