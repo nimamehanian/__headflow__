@@ -6,16 +6,16 @@
   color $ivory
   height 48px
   line-height 48px
-  overflow hidden
   display flex
   align-items center
   justify-content space-between
-  user-select none
   box-shadow 0 3px 4px 0 rgba(0, 0, 0, 0.14),
     0 3px 3px -2px rgba(0, 0, 0, 0.12),
     0 1px 8px 0 rgba(0, 0, 0, 0.2)
-  z-index 8
+  user-select none
+  -webkit-user-select none
   will-change transform
+  z-index 8
   .links-left
     display flex
     align-items center
@@ -30,11 +30,9 @@
     align-items center
     i.saving, i.saved
       height 48px
-      font-size 24px
+      font-size 30px
       width 44px
       text-align center
-      border-left 1px solid rgba(25, 34, 49, 0.6)
-      border-right 1px solid rgba(25, 34, 49, 0.6)
       &.saving
         color $ivory
       &.saved
@@ -53,10 +51,10 @@
         top 2px
       & .ion-android-more-vertical
         color $cream
-        font-size 24px
+        font-size 34px
   .menu
     cursor pointer
-    z-index 10
+    z-index 11
     position absolute
     top 56px
     right 8px
@@ -98,7 +96,7 @@
     right 0px
     bottom 0px
     left 0px
-    z-index 9
+    z-index 10
     display none
     &.is-visible
       display block
