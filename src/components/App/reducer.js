@@ -7,10 +7,12 @@ import {
   APP_SAVE_REQUEST,
   APP_SAVE_RESOLVE,
   APP_SAVE_FAILURE,
-  UPDATE_EDITOR_STATE
+  UPDATE_EDITOR_STATE,
+  TOGGLE_EDITOR_FOCUS
 } from './actionTypes';
 
 const initialState = {
+  isEditorFocused: false,
   isSaving: false,
   editorState: Raw.deserialize({ nodes: [
     {
@@ -37,6 +39,8 @@ const appReducer = (state = initialState, action) => {
       return { ...state, isSaving: false };
     case UPDATE_EDITOR_STATE:
       return { ...state, editorState: action.editorState };
+    case TOGGLE_EDITOR_FOCUS:
+      return { ...state, isEditorFocused: action.isEditorFocused };
     default:
       return state;
   }

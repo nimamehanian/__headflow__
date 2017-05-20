@@ -1,6 +1,5 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-// import range from 'lodash/range';
 import Header from '../Header';
 import Tree from '../Tree';
 
@@ -18,6 +17,7 @@ class App extends Component {
     return (
       <div className="app">
         <Header
+          isEditorFocused={this.props.isEditorFocused}
           isSaving={this.props.isSaving}
           username={this.props.user.displayName || this.props.user.email}
         />
@@ -25,6 +25,7 @@ class App extends Component {
           save={this.props.save}
           update={this.props.update}
           editorState={this.props.editorState}
+          toggleEditorFocus={this.props.toggleEditorFocus}
           userId={this.props.user.uid}
         />
       </div>

@@ -357,6 +357,8 @@ class Tree extends Component {
             onChange={this.onChange}
             onKeyDown={this.onKeyDown}
             ref={(editor) => { this.editor = editor; }}
+            onFocus={() => this.props.toggleEditorFocus(true)}
+            onBlur={() => this.props.toggleEditorFocus(false)}
           />
         </div>
       </div>
