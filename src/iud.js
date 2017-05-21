@@ -1,7 +1,7 @@
 const initialUserData = { nodes: [{
   data: { isExpanded: true, isVisible: true },
   kind: 'block',
-  node: [
+  nodes: [
     {
       kind: 'text',
       ranges: [{ marks: [{ type: 'Embolden' }], text: 'Hotkeys' }],
