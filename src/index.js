@@ -13,6 +13,7 @@ import appReducer from './components/App/reducer';
 import Login from './components/Login';
 import authReducer from './components/Login/reducer';
 import { Auth, DB } from './firebase';
+import initialUserData from './iud';
 import './styles/manifest.styl';
 
 const history = createHistory();
@@ -47,8 +48,6 @@ class Root extends Component {
         userRef.once('value', (data) => {
           if (!data.val()) {
             // user does not exist, so create entry
-            // TODO Create initialUserData
-            const initialUserData = {};
             userRef.set({
               email: user.email,
               displayName: user.displayName || null,
