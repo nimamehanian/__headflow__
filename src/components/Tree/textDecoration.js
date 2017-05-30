@@ -16,7 +16,5 @@ export const Fade = props =>
   <span className="fade">{props.children}</span>;
 
 export const Code = props => (
-  <div className="entry" {...props.attributes}>
-    <code>{props.children}</code>
-  </div>
+  <span className="code">{props.children}</span>
 );

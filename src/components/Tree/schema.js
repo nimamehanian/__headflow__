@@ -14,10 +14,11 @@ const schema = {
     Italicize,
     Underline,
     Strikethrough,
+    Code,
     Fade,
   },
   nodes: {
-    code: Code,
+    // code: Code,
     entry: Entry,
   },
 };

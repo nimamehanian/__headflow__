@@ -159,8 +159,10 @@ class Tree extends Component {
     // ⌘+K = Toggle monospace
     if (data.isMeta && data.key === 'k') {
       event.preventDefault();
-      const isCode = state.blocks.some(b => b.type === 'code');
-      return state.transform().setBlock(isCode ? 'entry' : 'code').apply();
+      return state.transform().toggleMark('Code').apply();
+      // event.preventDefault();
+      // const isCode = state.blocks.some(b => b.type === 'code');
+      // return state.transform().setBlock(isCode ? 'entry' : 'code').apply();
     }
 
     // ⌘+⌫ = Delete line
