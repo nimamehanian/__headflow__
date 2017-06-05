@@ -103,6 +103,12 @@ class Tree extends Component {
       return this.toggleExpand(state, true);
     }
 
+    // ⌘+A = Nullify selectAll
+    if (data.isMeta && data.key === 'a') {
+      event.preventDefault();
+      return state;
+    }
+
     // ⌘+S = Nullify save
     if (data.isMeta && data.key === 's') {
       event.preventDefault();
@@ -152,7 +158,7 @@ class Tree extends Component {
         transform
           .addMarkByKey(key, 0, length, markType)
           // .call(fadeChildren, state.startBlock.nodes)
-          .collapseToEndOf(state.document.getNextText(key))
+          // .collapseToEndOf(state.document.getNextText(key))
           .apply();
     }
 
