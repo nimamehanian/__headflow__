@@ -1,0 +1,43 @@
+.spinner
+  width 128px
+  height 128px
+  animation rotate 2.8s linear infinite
+  & .path
+    stroke #fff
+    stroke-linecap round
+    stroke-width 1
+    animation dash 1.4s infinite, paint 5.6s infinite
+    animation-timing-function cubic-bezier(0.165, 0.84, 0.44, 1)
+
+@keyframes rotate
+  100%
+    transform rotate(360deg)
+
+@keyframes dash
+  0%
+    stroke-dashoffset 0
+    stroke-dasharray 1, 150
+  50%
+    stroke-dashoffset -35
+    stroke-dasharray 90, 150
+  100%
+    stroke-dashoffset -125
+    stroke-dasharray 90, 150
+
+@keyframes paint
+  0%
+    stroke $powderBlue
+  25%
+    stroke $powderBlue
+  26%
+    stroke $logoBlue
+  50%
+    stroke $logoBlue
+  51%
+    stroke $blush
+  75%
+    stroke $blush
+  76%
+    stroke $stripeGrey
+  100%
+    stroke $stripeGrey
