@@ -9,8 +9,8 @@ class Entry extends Component {
     this.handleClick = this.handleClick.bind(this);
     this.getDepth = this.getDepth.bind(this);
     this.getWidth = throttle(() => {
-      // xOffset = ((widthOfIndentation * entryDepth) + leftMargin + fromBulletToFirstChar)
-      const xOffset = ((32 * this.getDepth()) + 4 + 16);
+      // xOffset = ((indentWidth * entryDepth) + sidebar + leftMargin + fromBulletToFirstChar)
+      const xOffset = ((32 * this.getDepth()) + 240 + 4 + 16);
       // widthOfViewport - xOffset - rightMargin - rightPadding
       const width = window.innerWidth - xOffset - 4 - 8;
       this.setState({ width });
