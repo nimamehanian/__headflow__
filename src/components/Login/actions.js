@@ -29,6 +29,7 @@ export const signup = (displayName, email, password) => (
     dispatch(loginRequest());
     Auth
       .createUserWithEmailAndPassword(email, password)
+      // TODO Why does this still work? Not dispatching
       .then(user => loginResolve(user))
       .catch(error => dispatch(loginFailure(error)));
   }

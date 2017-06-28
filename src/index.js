@@ -7,6 +7,7 @@ import thunk from 'redux-thunk';
 import { Route, Redirect } from 'react-router-dom';
 import { ConnectedRouter, routerMiddleware, routerReducer } from 'react-router-redux';
 import createHistory from 'history/createBrowserHistory';
+// import { Raw } from 'slate';
 
 import App from './components/App';
 import appReducer from './components/App/reducer';
@@ -26,20 +27,24 @@ const mainStore = createStore(
     routing: routerReducer,
   }),
   // Enable to access devTools in browser console
-  // window.devToolsExtension &&
-  // window.devToolsExtension(),
+  window.devToolsExtension &&
+  window.devToolsExtension(),
   applyMiddleware(thunk, middleware)
 );
 
 class Root extends Component {
   constructor(props) {
     super(props);
-    this.state = { user: null };
+    this.state = {
+      user: undefined,
+      // editorState: undefined,
+    };
   }
 
   componentWillMount() {
     Auth.onAuthStateChanged((user) => {
       if (!user) {
+        // Sets user to null
         this.setState({ user });
       }
       if (user) {
@@ -64,7 +69,6 @@ class Root extends Component {
   }
 
   render() {
-    // TODO show spinner before user resolves
     return (
       <Provider store={this.props.store}>
         <ConnectedRouter history={history}>
