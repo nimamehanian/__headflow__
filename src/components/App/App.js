@@ -18,7 +18,7 @@ class App extends Component {
 
   render() {
     if (this.props.isDataLoaded) {
-      console.log(this.props.editorState);
+      // console.log(this.props.editorState);
       // console.log(
       //   Raw.deserialize(
       //     { nodes: this.props.editorState.document

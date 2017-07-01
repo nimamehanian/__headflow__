@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import classnames from 'classnames';
 import throttle from 'lodash/throttle';
+import CollapseExpandButton from '../CollapseExpandButton';
 
 class Entry extends Component {
   constructor(props) {
@@ -65,6 +66,7 @@ class Entry extends Component {
     const hasChildren = this.props.node.nodes.count() > 1;
     const isExpanded = this.props.node.data.get('isExpanded');
     const isVisible = this.props.node.data.get('isVisible');
+    const behavior = { stiffness: 300, damping: 22 };
     return (
       <div
         className={entryClasses}
@@ -76,16 +78,12 @@ class Entry extends Component {
       >
         {(hasChildren && isExpanded) ? <span className="line" contentEditable={false} /> : null}
         {hasChildren ?
-          <span
-            onClick={e => this.handleClick(e, !isExpanded)}
-            className="collapse-expand-btn"
+          <CollapseExpandButton
+            toggle={e => this.handleClick(e, !isExpanded)}
+            behavior={behavior}
+            isExpanded={isExpanded}
             contentEditable={false}
-          >
-            <i
-              className={`ion-ios-${isExpanded ? 'minus' : 'plus'}-empty`}
-              contentEditable={false}
-            />
-          </span> : null
+          /> : null
         }
         <span className="bullet" contentEditable={false} />
         <span
