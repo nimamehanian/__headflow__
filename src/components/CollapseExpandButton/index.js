@@ -1,10 +1,10 @@
 import React from 'react';
 import { Motion, spring } from 'react-motion';
 
-const CollapseExpandButton = ({ toggle, isExpanded, behavior }) => (
+const CollapseExpandButton = ({ toggle, isExpanded }) => (
   <div onClick={toggle}>
     <div className="collapse-expand-btn">
-      <Motion style={{ rotate: spring(isExpanded ? 90 : 0, behavior) }}>
+      <Motion style={{ rotate: spring(isExpanded ? 90 : 0, { stiffness: 300, damping: 24 }) }}>
         {({ rotate }) => (
           <div
             className="arrow"

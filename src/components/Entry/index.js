@@ -66,7 +66,6 @@ class Entry extends Component {
     const hasChildren = this.props.node.nodes.count() > 1;
     const isExpanded = this.props.node.data.get('isExpanded');
     const isVisible = this.props.node.data.get('isVisible');
-    const behavior = { stiffness: 300, damping: 22 };
     return (
       <div
         className={entryClasses}
@@ -80,7 +79,6 @@ class Entry extends Component {
         {hasChildren ?
           <CollapseExpandButton
             toggle={e => this.handleClick(e, !isExpanded)}
-            behavior={behavior}
             isExpanded={isExpanded}
             contentEditable={false}
           /> : null

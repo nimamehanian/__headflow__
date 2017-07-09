@@ -57,13 +57,13 @@ const initialUserData = { nodes: [{
     {
       data: { isExpanded: true, isVisible: true },
       kind: 'block',
-      nodes: [{ kind: 'text', text: '⌘+↵ = Toggle strikethrough (i.e., complete item)' }],
+      nodes: [{ kind: 'text', text: '⌘+K = Toggle code' }],
       type: 'entry',
     },
     {
       data: { isExpanded: true, isVisible: true },
       kind: 'block',
-      nodes: [{ kind: 'text', text: '⌘+K = Toggle monospace' }],
+      nodes: [{ kind: 'text', text: '⌘+↵ = Toggle strikethrough (i.e., complete item)' }],
       type: 'entry',
     },
   ],
