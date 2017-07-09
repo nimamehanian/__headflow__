@@ -1,9 +1,6 @@
 {
   "hosting": {
     "public": "dist",
-    "database": {
-      "rules": "database.rules.json"
-    },
     "rewrites": [{
       "source": "**",
       "destination": "/index.html"
@@ -12,7 +9,7 @@
       "firebase.json",
       "**/.*",
       "**/node_modules/**"
-    ]
-  },
-  "cleanUrls": true
+    ],
+    "cleanUrls": true
+  }
 }
