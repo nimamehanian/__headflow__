@@ -1,7 +1,4 @@
 dist
 node_modules
 keys.js
-.firebaserc
-database.rules.json
-firebase.json
 .DS_Store
