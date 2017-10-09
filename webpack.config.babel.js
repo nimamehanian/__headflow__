@@ -3,8 +3,8 @@ import path from 'path';
 
 const config = {
   entry: [
-    (process.env.NODE_ENV === 'production' ? null :
-    'webpack-dev-server/client?http://localhost:8080'),
+    'react-hot-loader/patch',
+    (process.env.NODE_ENV === 'production' ? null : 'webpack-dev-server/client?http://localhost:8080'),
     './src/index',
   ].filter(entry => !!entry),
   module: {
@@ -12,7 +12,7 @@ const config = {
       {
         test: /\.(js(x)?$)/,
         exclude: /node_modules/,
-        loader: 'react-hot-loader!babel-loader',
+        loader: 'babel-loader',
       },
       {
         test: /\.(css|styl)$/,
@@ -33,7 +33,9 @@ const config = {
     historyApiFallback: true,
     hot: true,
   },
-  plugins: [new webpack.HotModuleReplacementPlugin()],
+  plugins: [
+    new webpack.HotModuleReplacementPlugin(),
+  ],
   devtool: 'source-map',
 };
 

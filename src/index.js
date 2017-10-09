@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 // import PropTypes from 'prop-types';
 import { render } from 'react-dom';
+import { AppContainer } from 'react-hot-loader';
 import { createStore, combineReducers, applyMiddleware } from 'redux';
 import { Provider } from 'react-redux';
 import thunk from 'redux-thunk';
@@ -111,6 +112,13 @@ class Root extends Component {
 // };
 
 render(
-  <Root store={mainStore} />,
+  <AppContainer><Root store={mainStore} /></AppContainer>,
   document.getElementById('app')
 );
+
+if (module.hot) {
+  module.hot.accept('./index', () => render(
+    <AppContainer><Root store={mainStore} /></AppContainer>,
+    document.getElementById('app')
+  ));
+}

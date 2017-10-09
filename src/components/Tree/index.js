@@ -138,8 +138,7 @@ class Tree extends Component {
       event.preventDefault();
       const markType = 'Strikethrough';
       const transform = state.transform();
-      const key = state.startText.key;
-      const length = state.startText.length;
+      const { key, length } = state.startText;
       if (!length) { return state; }
       const isStriked = state.startText.characters
         .first().get('marks').map(mark => mark.get('type')).contains(markType);

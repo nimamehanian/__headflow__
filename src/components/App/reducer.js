@@ -13,17 +13,19 @@ const initialState = {
   currentContext: 0,
   isEditorFocused: false,
   isSaving: false,
-  editorState: Raw.deserialize({ nodes: [
-    {
-      kind: 'block',
-      type: 'entry',
-      data: { isExpanded: true, isVisible: true },
-      nodes: [{
-        kind: 'text',
-        text: 'Loading...',
-      }],
-    },
-  ] }, { terse: true }),
+  editorState: Raw.deserialize({
+    nodes: [
+      {
+        kind: 'block',
+        type: 'entry',
+        data: { isExpanded: true, isVisible: true },
+        nodes: [{
+          kind: 'text',
+          text: 'Loading...',
+        }],
+      },
+    ],
+  }, { terse: true }),
 };
 
 const appReducer = (state = initialState, action) => {

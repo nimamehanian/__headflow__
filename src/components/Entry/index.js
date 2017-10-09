@@ -2,7 +2,6 @@ import React, { Component } from 'react';
 import classnames from 'classnames';
 import throttle from 'lodash/throttle';
 import CollapseExpandButton from '../CollapseExpandButton';
-// import listenOnce from '../../utils/listenOnce';
 
 class Entry extends Component {
   constructor(props) {
@@ -11,9 +10,9 @@ class Entry extends Component {
     this.handleClick = this.handleClick.bind(this);
     this.getDepth = this.getDepth.bind(this);
     this.getWidth = throttle(() => {
-      // Formula: xOffset = ((indentWidth * entryDepth) + sidebar + leftMargin + bulletToFirstChar)
+      // xOffset = ((indentWidth * entryDepth) + sidebar + leftMargin + fromBulletToFirstChar)
       const xOffset = ((32 * this.getDepth()) + 240 + 4 + 16);
-      // Formula: width = widthOfViewport - xOffset - rightMargin - rightPadding
+      // widthOfViewport - xOffset - rightMargin - rightPadding
       const width = window.innerWidth - xOffset - 4 - 8;
       this.setState({ width });
     }, 250);
@@ -40,27 +39,6 @@ class Entry extends Component {
   handleClick(event, isExpanding) {
     event.preventDefault();
     event.stopPropagation();
-
-    // const element = this.entry;
-    // const deltaY = element.getBoundingClientRect().height;
-
-    // if (isExpanding) {
-      // element.style.display = 'block';
-      // setTimeout(() => {
-      //   console.log('MOVE HEIGHT TO:', deltaY);
-      //   element.style.height = deltaY;
-      //   element.style.maxHeight = deltaY;
-      // }, 20);
-      // this.setState({ deltaY });
-    // } else {
-      // element.style.height = 0;
-      // element.style.maxHeight = 0;
-      // listenOnce(element, 'transitionend', () => {
-      //   element.style.display = 'none';
-      // });
-      // this.setState({ deltaY });
-    // }
-
     const syncedState = this.props.editor.getState()
       .transform().collapseToStartOf(this.props.node.nodes.get(0))
       .blur()
@@ -88,29 +66,29 @@ class Entry extends Component {
     const hasChildren = this.props.node.nodes.count() > 1;
     const isExpanded = this.props.node.data.get('isExpanded');
     const isVisible = this.props.node.data.get('isVisible');
+    const behavior = { stiffness: 300, damping: 22 };
     return (
       <div
         className={entryClasses}
         {...this.props.attributes}
         style={{
-          // display: `${isVisible ? 'block' : 'none'}`,
-          // maxHeight: 150,
-          // height: 150,
           display: `${isVisible ? 'block' : 'none'}`,
           width: this.state.width,
         }}
-        // ref={(entry) => { this.entry = entry; }}
       >
         {(hasChildren && isExpanded) ? <span className="line" contentEditable={false} /> : null}
         {hasChildren ?
           <CollapseExpandButton
             toggle={e => this.handleClick(e, !isExpanded)}
+            behavior={behavior}
             isExpanded={isExpanded}
             contentEditable={false}
           /> : null
         }
         <span className="bullet" contentEditable={false} />
-        <span className="entry-text">
+        <span
+          className="entry-text"
+        >
           {this.props.children}
         </span>
       </div>
